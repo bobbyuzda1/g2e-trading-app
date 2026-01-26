@@ -1,0 +1,58 @@
+# Cloud Build configuration for G2E Trading App
+# Builds and deploys backend to Cloud Run, frontend to Firebase Hosting
+
+steps:
+  # Build backend Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/g2e-backend', './backend']
+
+  # Push backend image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/g2e-backend']
+
+  # Deploy backend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'g2e-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/g2e-backend'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'DATABASE_URL=${_DATABASE_URL},JWT_SECRET=${_JWT_SECRET},GEMINI_API_KEY=${_GEMINI_API_KEY}'
+
+  # Install frontend dependencies
+  - name: 'node:18'
+    dir: 'frontend'
+    entrypoint: npm
+    args: ['ci']
+
+  # Build frontend
+  - name: 'node:18'
+    dir: 'frontend'
+    entrypoint: npm
+    args: ['run', 'build']
+    env:
+      - 'VITE_API_URL=https://g2e-backend-${_CLOUD_RUN_SUFFIX}.run.app/api/v1'
+
+  # Deploy frontend to Firebase Hosting
+  - name: 'gcr.io/$PROJECT_ID/firebase'
+    args: ['deploy', '--only', 'hosting']
+
+images:
+  - 'gcr.io/$PROJECT_ID/g2e-backend'
+
+substitutions:
+  _DATABASE_URL: ''
+  _JWT_SECRET: ''
+  _GEMINI_API_KEY: ''
+  _CLOUD_RUN_SUFFIX: ''
+
+options:
+  logging: CLOUD_LOGGING_ONLY

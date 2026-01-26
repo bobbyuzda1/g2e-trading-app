@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     app_name: str = "G2E Trading App"
     debug: bool = False
     api_v1_prefix: str = "/api/v1"
+    frontend_url: str = ""  # For CORS - set to Firebase hosting URL in production
 
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/g2e"

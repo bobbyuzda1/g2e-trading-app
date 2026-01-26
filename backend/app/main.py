@@ -26,10 +26,25 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware
+# CORS middleware - configure allowed origins
+cors_origins = [
+    "http://localhost:3000",  # React dev server
+    "http://localhost:5173",  # Vite default port
+]
+
+# Add production Firebase hosting URLs if configured
+if settings.frontend_url:
+    cors_origins.append(settings.frontend_url)
+
+# Add common Firebase hosting patterns
+cors_origins.extend([
+    "https://g2e-trading-app.web.app",
+    "https://g2e-trading-app.firebaseapp.com",
+])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
