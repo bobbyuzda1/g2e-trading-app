@@ -1,0 +1,17 @@
+Generic single-database configuration with async support.
+
+Usage:
+  # Create a new migration
+  alembic revision --autogenerate -m "description"
+
+  # Run migrations
+  alembic upgrade head
+
+  # Rollback one migration
+  alembic downgrade -1
+
+  # Show current revision
+  alembic current
+
+  # Show migration history
+  alembic history

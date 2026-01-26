@@ -1,0 +1,51 @@
+"""FastAPI application entry point."""
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import get_settings
+from app.api.v1.router import api_router
+
+settings = get_settings()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan handler for startup/shutdown."""
+    # Startup
+    print(f"Starting {settings.app_name}...")
+    yield
+    # Shutdown
+    print(f"Shutting down {settings.app_name}...")
+
+
+app = FastAPI(
+    title=settings.app_name,
+    description="AI-powered trading assistant with multi-brokerage support",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include API router
+app.include_router(api_router, prefix=settings.api_v1_prefix)
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    return {"status": "healthy", "app": settings.app_name}
+
+
+@app.get("/")
+async def root():
+    """Root endpoint."""
+    return {"message": f"Welcome to {settings.app_name}", "docs": "/docs"}

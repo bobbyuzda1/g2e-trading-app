@@ -1,0 +1,9 @@
+Initial commit: G2E Trading App
+
+Full-stack AI-powered trading assistant with:
+- FastAPI backend with PostgreSQL and Redis
+- React 18 frontend with Tailwind and Tremor
+- Multi-brokerage support (Alpaca, E*TRADE)
+- Google Gemini AI integration
+- 9 trading strategies
+- User feedback learning system
