@@ -1,9 +1,0 @@
-feat: Add Firebase + Supabase deployment configuration
-
-- Add firebase.json for Firebase Hosting
-- Add Dockerfile for Cloud Run deployment
-- Add cloudbuild.yaml for CI/CD
-- Add comprehensive DEPLOYMENT.md guide
-- Update CORS configuration for Firebase hosting
-- Update .env.example with Supabase connection format
-- Add frontend_url config setting

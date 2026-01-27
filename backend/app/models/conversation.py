@@ -58,9 +58,9 @@ class Message(Base, UUIDMixin, TimestampMixin):
     # Model used
     model: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    # Metadata (JSON)
+    # Extra data (JSON)
     # Contains: tool_calls, citations, confidence_score
-    metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    extra_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     # Relationships
     conversation = relationship("Conversation", back_populates="messages")
