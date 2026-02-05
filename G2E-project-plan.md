@@ -11,7 +11,7 @@ AI-powered E*TRADE trading application integrating Google Gemini for analysis, s
 ### Google Gemini API
 
 ```
-API Key: REDACTED_GEMINI_KEY
+API Key: <YOUR_GEMINI_API_KEY>
 Usage: key=API_KEY parameter in requests
 Models: gemini-2.5-pro (25%), gemini-2.5-flash-lite (75%)
 ```
@@ -19,8 +19,8 @@ Models: gemini-2.5-pro (25%), gemini-2.5-flash-lite (75%)
 ### E*TRADE Sandbox API
 
 ```
-Consumer Key: REDACTED_ETRADE_KEY
-Consumer Secret: REDACTED_ETRADE_SECRET
+Consumer Key: <YOUR_ETRADE_CONSUMER_KEY>
+Consumer Secret: <YOUR_ETRADE_CONSUMER_SECRET>
 Environment: Sandbox (testing)
 Auth Protocol: OAuth 1.0a
 ```
