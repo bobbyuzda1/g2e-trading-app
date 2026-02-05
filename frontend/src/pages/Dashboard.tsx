@@ -84,15 +84,15 @@ export function Dashboard() {
 
       {/* No Broker Connected State */}
       {brokers.length === 0 ? (
-        <Card className="bg-gradient-to-r from-primary-500 to-primary-600 text-white">
+        <Card className="bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] border-0 shadow-lg">
           <div className="text-center py-8">
             <Title className="text-white">Get Started with G2E</Title>
-            <Text className="text-primary-100 mt-2">
+            <Text className="text-purple-100 mt-2">
               Connect your brokerage account to start trading with AI assistance.
             </Text>
             <Link
               to="/settings"
-              className="mt-4 inline-flex items-center px-6 py-3 bg-white text-primary-600 rounded-lg font-medium hover:bg-primary-50 transition-colors"
+              className="mt-4 inline-flex items-center px-6 py-3 bg-white text-[#6366f1] rounded-lg font-medium hover:bg-gray-100 transition-colors shadow-md"
             >
               Connect Broker →
             </Link>

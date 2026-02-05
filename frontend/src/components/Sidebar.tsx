@@ -24,13 +24,12 @@ function classNames(...classes: string[]) {
 export function Sidebar() {
   return (
     <>
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar - Dark theme */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-[#0f172a] px-6 pb-4">
           {/* Logo */}
           <div className="flex h-16 shrink-0 items-center">
-            <span className="text-2xl font-bold text-primary-600">G2E</span>
-            <span className="ml-2 text-lg text-gray-600">Trading</span>
+            <img src="/logo-dark.png" alt="G2E Trading" className="h-10 w-auto" />
           </div>
 
           {/* Navigation */}
@@ -45,8 +44,8 @@ export function Sidebar() {
                         className={({ isActive }) =>
                           classNames(
                             isActive
-                              ? 'bg-primary-50 text-primary-600'
-                              : 'text-gray-700 hover:bg-gray-50 hover:text-primary-600',
+                              ? 'bg-primary-600 text-white'
+                              : 'text-gray-300 hover:bg-slate-800 hover:text-white',
                             'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6'
                           )
                         }
@@ -56,8 +55,8 @@ export function Sidebar() {
                             <item.icon
                               className={classNames(
                                 isActive
-                                  ? 'text-primary-600'
-                                  : 'text-gray-400 group-hover:text-primary-600',
+                                  ? 'text-white'
+                                  : 'text-gray-400 group-hover:text-white',
                                 'h-6 w-6 shrink-0'
                               )}
                               aria-hidden="true"
@@ -73,12 +72,12 @@ export function Sidebar() {
 
               {/* Account status */}
               <li className="mt-auto">
-                <div className="rounded-lg bg-gray-50 p-4">
-                  <p className="text-xs font-medium text-gray-500">Connected Brokers</p>
-                  <p className="mt-1 text-sm font-semibold text-gray-900">0 accounts</p>
+                <div className="rounded-lg bg-slate-800 p-4">
+                  <p className="text-xs font-medium text-gray-400">Connected Brokers</p>
+                  <p className="mt-1 text-sm font-semibold text-white">0 accounts</p>
                   <NavLink
                     to="/settings"
-                    className="mt-2 inline-flex text-xs text-primary-600 hover:text-primary-700"
+                    className="mt-2 inline-flex text-xs text-primary-400 hover:text-primary-300"
                   >
                     Connect broker &rarr;
                   </NavLink>
@@ -89,8 +88,8 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Mobile sidebar - simplified for now */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200">
+      {/* Mobile sidebar - Dark theme */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0f172a] border-t border-slate-700">
         <nav className="flex justify-around py-2">
           {navigation.slice(0, 5).map((item) => (
             <NavLink
@@ -98,7 +97,7 @@ export function Sidebar() {
               to={item.href}
               className={({ isActive }) =>
                 classNames(
-                  isActive ? 'text-primary-600' : 'text-gray-500',
+                  isActive ? 'text-primary-400' : 'text-gray-400',
                   'flex flex-col items-center p-2 text-xs'
                 )
               }
@@ -107,7 +106,7 @@ export function Sidebar() {
                 <>
                   <item.icon
                     className={classNames(
-                      isActive ? 'text-primary-600' : 'text-gray-400',
+                      isActive ? 'text-primary-400' : 'text-gray-500',
                       'h-6 w-6'
                     )}
                   />
