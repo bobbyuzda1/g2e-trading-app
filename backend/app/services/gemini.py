@@ -6,7 +6,7 @@ import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
 
 from app.config import get_settings
-from app.core.ai import AIModel, AIRole, SYSTEM_PROMPTS, AI_DISCLAIMER
+from app.core.ai import AIModel, AIRole, get_system_prompt, AI_DISCLAIMER
 
 settings = get_settings()
 
@@ -33,16 +33,36 @@ class GeminiService:
         history: list[dict] | None = None,
         temperature: float = 0.7,
         max_tokens: int = 4096,
+        strategy_name: str | None = None,
+        active_plan: dict | None = None,
+        user_profile: dict | None = None,
     ) -> tuple[str, dict]:
         """Generate a response from Gemini.
+
+        Args:
+            prompt: The user's message/query
+            model: Which Gemini model to use (Pro for complex, Flash for fast)
+            role: AI role determining base behavior
+            context: Additional context (portfolio data, etc.)
+            history: Conversation history for multi-turn chat
+            temperature: Response creativity (0.0-1.0)
+            max_tokens: Maximum response length
+            strategy_name: User's active trading strategy for knowledge injection
+            active_plan: User's term-based trading plan
+            user_profile: User's communication preferences
 
         Returns:
             Tuple of (response_text, usage_metadata)
         """
         gemini_model = self._get_model(model)
 
-        # Build the full prompt with system context
-        system_prompt = SYSTEM_PROMPTS.get(role, SYSTEM_PROMPTS[AIRole.TRADING_ASSISTANT])
+        # Build the full prompt with strategy-aware system context
+        system_prompt = get_system_prompt(
+            role=role,
+            strategy_name=strategy_name,
+            active_plan=active_plan,
+            user_profile=user_profile,
+        )
 
         full_context = [system_prompt]
         if context:
@@ -90,11 +110,19 @@ class GeminiService:
         context: str | None = None,
         history: list[dict] | None = None,
         temperature: float = 0.7,
+        strategy_name: str | None = None,
+        active_plan: dict | None = None,
+        user_profile: dict | None = None,
     ) -> AsyncGenerator[str, None]:
-        """Stream a response from Gemini."""
+        """Stream a response from Gemini with strategy-aware context."""
         gemini_model = self._get_model(model)
 
-        system_prompt = SYSTEM_PROMPTS.get(role, SYSTEM_PROMPTS[AIRole.TRADING_ASSISTANT])
+        system_prompt = get_system_prompt(
+            role=role,
+            strategy_name=strategy_name,
+            active_plan=active_plan,
+            user_profile=user_profile,
+        )
 
         full_context = [system_prompt]
         if context:
@@ -125,8 +153,13 @@ class GeminiService:
         portfolio_data: dict,
         strategy_name: str | None = None,
         user_preferences: dict | None = None,
+        active_plan: dict | None = None,
     ) -> dict:
-        """Analyze a portfolio and provide recommendations."""
+        """Analyze a portfolio with strategy-specific knowledge.
+
+        The AI will use the knowledge base protocols for the specified strategy
+        to provide more targeted, actionable analysis.
+        """
         context = f"""
 Portfolio Data:
 {json.dumps(portfolio_data, indent=2, default=str)}
@@ -136,20 +169,25 @@ Portfolio Data:
 {f"User Preferences: {json.dumps(user_preferences, indent=2)}" if user_preferences else ""}
 """
 
-        prompt = """Analyze this portfolio and provide:
-1. Portfolio Overview (diversification, sector exposure, risk level)
-2. Strengths and potential concerns
-3. Alignment with strategy (if specified)
-4. 2-3 specific recommendations with rationale
-5. Risk considerations
+        prompt = """Analyze this portfolio using the Chain of Thought framework:
 
-Format the response clearly with headers."""
+1. **Market Regime Check**: Assess current macro environment (bull/bear/range)
+2. **Portfolio Overview**: Diversification, sector exposure, correlation analysis
+3. **Strategy Alignment**: How well does the portfolio match the active strategy?
+4. **Risk Assessment**: VaR estimate, concentration risks, drawdown potential
+5. **Recommendations**: 2-3 specific, actionable recommendations with position sizing guidance
+6. **Risk Considerations**: Key risks and what would invalidate the analysis
+
+Format with clear headers. Be specific and include quantitative reasoning where possible."""
 
         response, usage = await self.generate(
             prompt=prompt,
             model=AIModel.GEMINI_PRO,
             role=AIRole.ANALYST,
             context=context,
+            strategy_name=strategy_name,
+            active_plan=active_plan,
+            user_profile=user_preferences,
         )
 
         return {
@@ -164,8 +202,14 @@ Format the response clearly with headers."""
         quantity: str,
         portfolio_context: dict | None = None,
         strategy_name: str | None = None,
+        active_plan: dict | None = None,
+        user_profile: dict | None = None,
     ) -> dict:
-        """Analyze a potential trade."""
+        """Analyze a potential trade using strategy-specific decision logic.
+
+        The AI applies the sequential decision logic from the knowledge base
+        for the user's active strategy.
+        """
         context = f"""
 Proposed Trade:
 - Symbol: {symbol}
@@ -173,23 +217,31 @@ Proposed Trade:
 - Quantity: {quantity}
 
 {f"Portfolio Context: {json.dumps(portfolio_context, indent=2, default=str)}" if portfolio_context else ""}
-{f"Strategy: {strategy_name}" if strategy_name else ""}
 """
 
-        prompt = """Evaluate this trade proposal:
-1. Does it align with the strategy (if specified)?
-2. Position sizing assessment
-3. Risk/reward analysis
-4. Potential concerns or alternatives
-5. Overall recommendation (proceed/caution/reconsider)
+        prompt = f"""Evaluate this trade proposal using the Sequential Decision Framework:
 
-Be specific and actionable."""
+1. **Market Regime Check**: Is macro environment favorable for this trade type?
+2. **Sector Analysis**: Is {symbol}'s sector in the top performers?
+3. **Strategy Alignment**: Does this trade fit the {strategy_name or 'general'} strategy criteria?
+4. **Position Sizing**: Is the quantity appropriate for account risk limits?
+5. **Correlation Check**: Does this increase portfolio concentration?
+6. **Event Risk**: Any earnings/Fed announcements within 3 days?
+7. **Technical Timing**: Is this the right entry point?
+8. **Risk/Reward Assessment**: Calculate R:R ratio with stop loss and target
+
+**Final Recommendation**: PROCEED / CAUTION / RECONSIDER with specific reasoning.
+
+Be specific and actionable. Include suggested stop loss and target levels."""
 
         response, usage = await self.generate(
             prompt=prompt,
             model=AIModel.GEMINI_PRO,
             role=AIRole.ANALYST,
             context=context,
+            strategy_name=strategy_name,
+            active_plan=active_plan,
+            user_profile=user_profile,
         )
 
         return {
