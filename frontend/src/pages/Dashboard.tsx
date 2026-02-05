@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Title, Text, Grid, Card, Metric, Flex, BadgeDelta, ProgressBar } from '@tremor/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { portfolioApi, chatApi, feedbackApi, brokerageApi } from '../lib/api';
 import { QuickStats } from '../components/QuickStats';
 import { RecentActivity } from '../components/RecentActivity';
@@ -9,6 +10,7 @@ import type { PortfolioSummary, Conversation, BrokerConnection } from '../types'
 
 export function Dashboard() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [brokers, setBrokers] = useState<BrokerConnection[]>([]);

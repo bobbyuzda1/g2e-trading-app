@@ -1,14 +1,17 @@
 import { ReactNode } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const { theme } = useTheme();
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={theme === 'dark' ? 'min-h-screen bg-[#0d1117]' : 'min-h-screen bg-gray-50'}>
       {/* Sidebar */}
       <Sidebar />
 

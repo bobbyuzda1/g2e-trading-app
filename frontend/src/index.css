@@ -11,3 +11,23 @@ body {
 .tremor-base {
   font-family: inherit;
 }
+
+/* Dark mode - Tremor card overrides */
+.dark .tremor-Card-root {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+.dark .tremor-Title-root,
+.dark .tremor-Metric-root {
+  color: #f1f5f9;
+}
+
+.dark .tremor-Text-root {
+  color: #94a3b8;
+}
+
+/* Dark mode transitions */
+body {
+  transition: background-color 0.2s ease-in-out;
+}

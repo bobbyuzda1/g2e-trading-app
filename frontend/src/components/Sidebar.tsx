@@ -7,6 +7,7 @@ import {
   ArrowTrendingUpIcon,
   BanknotesIcon,
 } from '@heroicons/react/24/outline';
+import { useTheme } from '../contexts/ThemeContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
@@ -22,14 +23,25 @@ function classNames(...classes: string[]) {
 }
 
 export function Sidebar() {
+  const { theme } = useTheme();
+
   return (
     <>
-      {/* Desktop sidebar - Dark theme */}
+      {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-[#0f172a] px-6 pb-4">
+        <div className={classNames(
+          "flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4 border-r",
+          theme === 'dark'
+            ? "bg-[#0f172a] border-slate-700"
+            : "bg-white border-gray-200"
+        )}>
           {/* Logo */}
           <div className="flex h-16 shrink-0 items-center">
-            <img src="/logo-dark.png" alt="G2E Trading" className="h-10 w-auto" />
+            <img
+              src={theme === 'dark' ? "/logo-dark.png" : "/logo-light.png"}
+              alt="G2E Trading"
+              className="h-10 w-auto"
+            />
           </div>
 
           {/* Navigation */}
@@ -45,7 +57,9 @@ export function Sidebar() {
                           classNames(
                             isActive
                               ? 'bg-primary-600 text-white'
-                              : 'text-gray-300 hover:bg-slate-800 hover:text-white',
+                              : theme === 'dark'
+                                ? 'text-gray-300 hover:bg-slate-800 hover:text-white'
+                                : 'text-gray-700 hover:bg-gray-50 hover:text-primary-600',
                             'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6'
                           )
                         }
@@ -56,7 +70,9 @@ export function Sidebar() {
                               className={classNames(
                                 isActive
                                   ? 'text-white'
-                                  : 'text-gray-400 group-hover:text-white',
+                                  : theme === 'dark'
+                                    ? 'text-gray-400 group-hover:text-white'
+                                    : 'text-gray-400 group-hover:text-primary-600',
                                 'h-6 w-6 shrink-0'
                               )}
                               aria-hidden="true"
@@ -72,12 +88,21 @@ export function Sidebar() {
 
               {/* Account status */}
               <li className="mt-auto">
-                <div className="rounded-lg bg-slate-800 p-4">
-                  <p className="text-xs font-medium text-gray-400">Connected Brokers</p>
-                  <p className="mt-1 text-sm font-semibold text-white">0 accounts</p>
+                <div className={classNames(
+                  "rounded-lg p-4",
+                  theme === 'dark' ? "bg-slate-800" : "bg-gray-50"
+                )}>
+                  <p className={classNames(
+                    "text-xs font-medium",
+                    theme === 'dark' ? "text-gray-400" : "text-gray-500"
+                  )}>Connected Brokers</p>
+                  <p className={classNames(
+                    "mt-1 text-sm font-semibold",
+                    theme === 'dark' ? "text-white" : "text-gray-900"
+                  )}>0 accounts</p>
                   <NavLink
                     to="/settings"
-                    className="mt-2 inline-flex text-xs text-primary-400 hover:text-primary-300"
+                    className="mt-2 inline-flex text-xs text-primary-500 hover:text-primary-400"
                   >
                     Connect broker &rarr;
                   </NavLink>
@@ -88,8 +113,13 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Mobile sidebar - Dark theme */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0f172a] border-t border-slate-700">
+      {/* Mobile sidebar */}
+      <div className={classNames(
+        "lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t",
+        theme === 'dark'
+          ? "bg-[#0f172a] border-slate-700"
+          : "bg-white border-gray-200"
+      )}>
         <nav className="flex justify-around py-2">
           {navigation.slice(0, 5).map((item) => (
             <NavLink
@@ -97,7 +127,9 @@ export function Sidebar() {
               to={item.href}
               className={({ isActive }) =>
                 classNames(
-                  isActive ? 'text-primary-400' : 'text-gray-400',
+                  isActive
+                    ? 'text-primary-500'
+                    : theme === 'dark' ? 'text-gray-400' : 'text-gray-500',
                   'flex flex-col items-center p-2 text-xs'
                 )
               }
@@ -106,7 +138,9 @@ export function Sidebar() {
                 <>
                   <item.icon
                     className={classNames(
-                      isActive ? 'text-primary-400' : 'text-gray-500',
+                      isActive
+                        ? 'text-primary-500'
+                        : theme === 'dark' ? 'text-gray-500' : 'text-gray-400',
                       'h-6 w-6'
                     )}
                   />

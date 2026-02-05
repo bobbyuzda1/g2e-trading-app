@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -8,6 +10,7 @@ export function Login() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,16 +32,40 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${
+      theme === 'dark' ? 'bg-[#0d1117]' : 'bg-gray-50'
+    }`}>
+      {/* Theme toggle */}
+      <button
+        onClick={toggleTheme}
+        className={`absolute top-4 right-4 p-2 rounded-md ${
+          theme === 'dark'
+            ? 'text-gray-300 hover:bg-slate-800'
+            : 'text-gray-500 hover:bg-gray-100'
+        }`}
+      >
+        {theme === 'dark' ? (
+          <SunIcon className="h-6 w-6" />
+        ) : (
+          <MoonIcon className="h-6 w-6" />
+        )}
+      </button>
+
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <img src="/logo-light.png" alt="G2E Trading" className="h-16 mx-auto" />
-          <h2 className="mt-6 text-2xl font-bold text-gray-900">
+          <img
+            src={theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'}
+            alt="G2E Trading"
+            className="h-16 mx-auto"
+          />
+          <h2 className={`mt-6 text-2xl font-bold ${
+            theme === 'dark' ? 'text-white' : 'text-gray-900'
+          }`}>
             Sign in to your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
             Or{' '}
-            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
+            <Link to="/register" className="font-medium text-primary-500 hover:text-primary-400">
               create a new account
             </Link>
           </p>
@@ -46,14 +73,16 @@ export function Login() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-700">{error}</p>
+            <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
+              <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
             </div>
           )}
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className={`block text-sm font-medium ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+              }`}>
                 Email address
               </label>
               <input
@@ -64,13 +93,19 @@ export function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
+                className={`mt-1 block w-full rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm ${
+                  theme === 'dark'
+                    ? 'bg-slate-800 border-slate-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                } border`}
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className={`block text-sm font-medium ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+              }`}>
                 Password
               </label>
               <input
@@ -81,7 +116,11 @@ export function Login() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
+                className={`mt-1 block w-full rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm ${
+                  theme === 'dark'
+                    ? 'bg-slate-800 border-slate-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                } border`}
                 placeholder="••••••••"
               />
             </div>
