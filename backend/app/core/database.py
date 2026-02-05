@@ -11,7 +11,8 @@ engine = create_async_engine(
     echo=settings.debug,
     pool_pre_ping=True,
     connect_args={
-        "prepared_statement_cache_size": 0,  # Required for Supabase connection pooler
+        "statement_cache_size": 0,  # Required for Supabase connection pooler (pgbouncer)
+        "prepared_statement_cache_size": 0,
     },
 )
 
