@@ -30,7 +30,7 @@ class BrokerageConnectionResponse(BrokerageConnectionBase, TimestampSchema):
     is_primary: bool
 
 
-class BrokerageAccountResponse(BaseSchema, TimestampSchema):
+class BrokerageAccountResponse(TimestampSchema):
     """Brokerage account response."""
 
     id: UUID
