@@ -38,8 +38,8 @@ if settings.frontend_url:
 
 # Add common Firebase hosting patterns
 cors_origins.extend([
-    "https://g2e-trading-app.web.app",
-    "https://g2e-trading-app.firebaseapp.com",
+    "https://etrade-ai-trading.web.app",
+    "https://etrade-ai-trading.firebaseapp.com",
 ])
 
 app.add_middleware(
