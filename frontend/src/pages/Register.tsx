@@ -68,6 +68,11 @@ export function Register() {
             alt="G2E Trading"
             className="h-16 mx-auto"
           />
+          <p className={`mt-2 text-sm font-medium ${
+            theme === 'dark' ? 'text-primary-400' : 'text-primary-600'
+          }`}>
+            Trade Smarter, Not Harder
+          </p>
           <h2 className={`mt-6 text-2xl font-bold ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>

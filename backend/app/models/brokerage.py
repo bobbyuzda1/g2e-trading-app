@@ -37,11 +37,11 @@ class BrokerageConnection(Base, UUIDMixin, TimestampMixin):
         nullable=False,
     )
     broker_id: Mapped[BrokerId] = mapped_column(
-        SQLEnum(BrokerId),
+        SQLEnum(BrokerId, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
     )
     status: Mapped[ConnectionStatus] = mapped_column(
-        SQLEnum(ConnectionStatus),
+        SQLEnum(ConnectionStatus, values_callable=lambda x: [e.value for e in x]),
         default=ConnectionStatus.PENDING,
         nullable=False,
     )
@@ -78,7 +78,7 @@ class BrokerageAccount(Base, UUIDMixin, TimestampMixin):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
-    broker_id: Mapped[BrokerId] = mapped_column(SQLEnum(BrokerId), nullable=False)
+    broker_id: Mapped[BrokerId] = mapped_column(SQLEnum(BrokerId, values_callable=lambda x: [e.value for e in x]), nullable=False)
 
     # Account info
     broker_account_id: Mapped[str] = mapped_column(String(100), nullable=False)

@@ -102,13 +102,14 @@ export const strategyApi = {
 
 // Brokerage API
 export const brokerageApi = {
-  getConnections: () => api.get('/brokerage/connections'),
-  initiateConnection: (broker: string) =>
-    api.post('/brokerage/connect', { broker }),
-  completeOAuth: (broker: string, code: string, verifier?: string) =>
-    api.post('/brokerage/callback', { broker, code, verifier }),
+  getConnections: () => api.get('/brokerages/connections'),
+  getSupportedBrokers: () => api.get('/brokerages/supported'),
+  initiateConnection: (brokerId: string, redirectUri: string) =>
+    api.post(`/brokerages/connect/${brokerId}`, null, { params: { redirect_uri: redirectUri } }),
+  completeOAuth: (brokerId: string, redirectUri: string, callbackData: { state: string; code?: string; oauth_token?: string; oauth_verifier?: string }) =>
+    api.post(`/brokerages/callback/${brokerId}`, callbackData, { params: { redirect_uri: redirectUri } }),
   disconnect: (connectionId: string) =>
-    api.delete(`/brokerage/connections/${connectionId}`),
+    api.delete(`/brokerages/connections/${connectionId}`),
 };
 
 // Feedback API
