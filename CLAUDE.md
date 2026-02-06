@@ -1,0 +1,112 @@
+# CLAUDE.md - G2E Trading App
+
+This file provides guidance to Claude Code when working with this repository.
+
+## Project Overview
+
+G2E Trading is an AI-powered trading assistant with multi-brokerage support (E*TRADE, Alpaca). The app uses Google Gemini AI for trading analysis and recommendations.
+
+**Slogan:** *Trade Smarter, Not Harder*
+
+## Quick Links
+
+- **Live Site:** https://etrade-ai-trading.web.app
+- **Backend API:** https://g2e-backend.onrender.com
+- **API Docs:** https://g2e-backend.onrender.com/docs
+- **GitHub:** https://github.com/bobbyuzda1/g2e-trading-app
+
+## Documentation
+
+### G2E-Overview.md (IMPORTANT)
+
+**The `G2E-Overview.md` file is the comprehensive technical documentation for this project.**
+
+**You MUST keep this file updated whenever you:**
+- Add new features or endpoints
+- Change the architecture or services
+- Modify database schema
+- Update dependencies or configurations
+- Fix significant bugs
+- Add new integrations
+
+Update the "Last Updated" date and add entries to the Changelog section at the bottom.
+
+## Tech Stack
+
+- **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS + Tremor
+- **Backend:** FastAPI + Python 3.11 + SQLAlchemy
+- **Database:** Supabase (PostgreSQL with pgbouncer)
+- **AI:** Google Gemini 2.5 Pro/Flash
+- **Hosting:** Firebase (frontend) + Render (backend)
+
+## Key Directories
+
+| Directory | Purpose |
+|-----------|---------|
+| `backend/app/api/v1/endpoints/` | API route handlers |
+| `backend/app/services/` | Business logic |
+| `backend/app/models/` | SQLAlchemy models |
+| `backend/app/brokers/` | Broker adapters (E*TRADE, Alpaca) |
+| `backend/app/core/` | Config, security, database, AI |
+| `frontend/src/pages/` | React page components |
+| `frontend/src/components/` | Reusable components |
+| `frontend/src/contexts/` | React contexts (Auth, Theme) |
+| `frontend/src/lib/` | API client |
+
+## Deployment
+
+### Backend (Automatic)
+Push to `main` branch triggers Render auto-deploy.
+
+### Frontend (Manual)
+```powershell
+cd frontend
+npx tsc && npx vite build
+cd ..
+firebase deploy --only hosting
+```
+
+## Environment Variables
+
+Backend environment variables are configured in Render dashboard:
+- `DATABASE_URL` - Supabase pooler connection string
+- `SECRET_KEY` - JWT signing key
+- `GEMINI_API_KEY` - Google AI API key
+- `FRONTEND_URL` - CORS allowed origin
+
+## Database Notes
+
+- Uses Supabase connection pooler (pgbouncer) on port 6543
+- Requires `statement_cache_size=0` for asyncpg compatibility
+- Enums use lowercase values (e.g., 'revoked' not 'REVOKED')
+- Schema defined in `backend/migrations_initial.sql`
+
+## Common Issues
+
+1. **bcrypt errors:** Pinned to version 4.0.1 for passlib compatibility
+2. **Prepared statement errors:** Use pooler URL with cache disabled
+3. **CORS errors:** Check FRONTEND_URL in backend environment
+4. **Enum errors:** Ensure SQLAlchemy uses `values_callable` for enums
+
+## Broker Integration Status
+
+| Broker | Adapter | Status |
+|--------|---------|--------|
+| E*TRADE | Complete | Needs API keys |
+| Alpaca | Complete | Needs API keys |
+| Schwab | Planned | Not started |
+
+## AI Knowledge Base
+
+- Strategy protocols in `backend/app/core/knowledge_base.py`
+- Training data in `G2E-training-data.jsonl` (168 examples)
+- Full knowledge in `G2E-knowledge.md` (1,870 lines)
+
+## Testing
+
+```bash
+cd backend
+pytest tests/
+```
+
+Note: Tests require database connection to run.
