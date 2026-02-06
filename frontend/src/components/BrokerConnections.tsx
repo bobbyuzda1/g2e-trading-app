@@ -33,11 +33,14 @@ export function BrokerConnections() {
   const handleConnect = async (broker: string) => {
     setConnectingBroker(broker);
     try {
-      const response = await brokerageApi.initiateConnection(broker);
+      // Use current page as redirect URI for OAuth callback
+      const redirectUri = `${window.location.origin}/settings?broker=${broker}`;
+      const response = await brokerageApi.initiateConnection(broker, redirectUri);
       // Redirect to OAuth URL
-      window.location.href = response.data.auth_url;
-    } catch (error) {
+      window.location.href = response.data.authorization_url;
+    } catch (error: any) {
       console.error('Failed to initiate connection:', error);
+      alert(error.response?.data?.detail || 'Failed to connect broker. Please try again.');
       setConnectingBroker(null);
     }
   };
