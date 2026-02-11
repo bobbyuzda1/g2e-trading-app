@@ -62,13 +62,14 @@ class BrokerageService:
             "redirect_uri": redirect_uri,
         }
 
+        cache_ok = False
         if self.cache:
-            await self.cache.set(
+            cache_ok = await self.cache.set(
                 f"oauth_state:{state}",
                 state_data,
                 ttl=600,  # 10 minutes
             )
-        else:
+        if not cache_ok:
             self._oauth_states[state] = state_data
 
         # Create pending connection record
@@ -105,9 +106,10 @@ class BrokerageService:
 
         # Verify state
         state = callback_data.get("state")
+        state_data = None
         if self.cache:
             state_data = await self.cache.get(f"oauth_state:{state}")
-        else:
+        if not state_data:
             state_data = self._oauth_states.get(state)
 
         if not state_data:
