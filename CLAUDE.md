@@ -58,13 +58,27 @@ Update the "Last Updated" date and add entries to the Changelog section at the b
 ### Backend (Automatic)
 Push to `main` branch triggers Render auto-deploy.
 
-### Frontend (Manual)
-```powershell
-cd frontend
-npx tsc && npx vite build
-cd ..
-firebase deploy --only hosting
+### Frontend (Automatic)
+Push to `main` branch with changes in `frontend/`, `firebase.json`, or `.firebaserc` triggers GitHub Actions auto-deploy to Firebase Hosting (`.github/workflows/firebase-deploy.yml`).
+
+**When the user asks for frontend changes that need to go live:**
+1. Make the changes on a feature branch
+2. Commit and push to the feature branch
+3. The user merges the PR to `main` (or pushes directly to `main`)
+4. GitHub Actions automatically builds and deploys to Firebase — no manual steps needed
+
+**Do NOT** attempt to run `firebase deploy` manually. The GitHub Actions workflow handles all builds and deploys.
+
+### Render Logs
+Backend logs can be fetched directly from Render's API:
+```bash
+bash scripts/fetch-render-logs.sh          # Recent log entries
+bash scripts/fetch-render-logs.sh 30m      # Last 30 minutes
+bash scripts/fetch-render-logs.sh 4h       # Last 4 hours
+bash scripts/fetch-render-logs.sh errors   # Error-level only
+bash scripts/fetch-render-logs.sh save 1d  # Save last day to logs/
 ```
+Requires `RENDER_API_KEY` in `.env` (already configured).
 
 ## Environment Variables
 
