@@ -1,7 +1,7 @@
 """Brokerage connection models."""
 from enum import Enum
 from datetime import datetime
-from sqlalchemy import String, Boolean, ForeignKey, DateTime, Enum as SQLEnum
+from sqlalchemy import String, Boolean, ForeignKey, DateTime, Text, Enum as SQLEnum, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -92,3 +92,32 @@ class BrokerageAccount(Base, UUIDMixin, TimestampMixin):
 
     # Relationships
     connection = relationship("BrokerageConnection", back_populates="accounts")
+
+
+class UserBrokerCredential(Base, UUIDMixin, TimestampMixin):
+    """User-provided API credentials for a broker (encrypted at rest)."""
+
+    __tablename__ = "user_broker_credentials"
+    __table_args__ = (
+        UniqueConstraint("user_id", "broker_id", name="uq_user_broker_credential"),
+    )
+
+    user_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    broker_id: Mapped[BrokerId] = mapped_column(
+        SQLEnum(BrokerId, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+    )
+
+    # Encrypted credential fields
+    encrypted_key: Mapped[str] = mapped_column(Text, nullable=False)
+    encrypted_secret: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # Whether these are sandbox/paper keys
+    is_sandbox: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    # Relationships
+    user = relationship("User")

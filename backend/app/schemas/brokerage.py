@@ -56,3 +56,21 @@ class OAuthCallbackRequest(BaseSchema):
     oauth_token: str | None = None  # OAuth 1.0a
     oauth_verifier: str | None = None  # OAuth 1.0a
     state: str
+
+
+class BrokerCredentialSave(BaseSchema):
+    """Request to save user's broker API credentials."""
+
+    broker_id: BrokerId
+    api_key: str
+    api_secret: str
+    is_sandbox: bool = True
+
+
+class BrokerCredentialResponse(BaseSchema):
+    """Response showing whether credentials exist (never exposes secrets)."""
+
+    broker_id: BrokerId
+    has_credentials: bool
+    is_sandbox: bool
+    api_key_hint: str  # e.g. "abc...xyz"

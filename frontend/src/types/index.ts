@@ -107,6 +107,13 @@ export interface BrokerConnection {
   connected_at: string;
 }
 
+export interface BrokerCredential {
+  broker_id: string;
+  has_credentials: boolean;
+  is_sandbox: boolean;
+  api_key_hint: string;
+}
+
 // Feedback types
 export type FeedbackType = 'accept' | 'reject' | 'modify' | 'question';
 

@@ -110,6 +110,12 @@ export const brokerageApi = {
     api.post(`/brokerages/callback/${brokerId}`, callbackData, { params: { redirect_uri: redirectUri } }),
   disconnect: (connectionId: string) =>
     api.delete(`/brokerages/connections/${connectionId}`),
+  // Per-user broker API credentials
+  getCredentials: () => api.get('/brokerages/credentials'),
+  saveCredentials: (data: { broker_id: string; api_key: string; api_secret: string; is_sandbox: boolean }) =>
+    api.put('/brokerages/credentials', data),
+  deleteCredentials: (brokerId: string) =>
+    api.delete(`/brokerages/credentials/${brokerId}`),
 };
 
 // Feedback API

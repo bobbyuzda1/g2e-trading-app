@@ -1,6 +1,6 @@
 """Database models."""
 from app.models.user import User
-from app.models.brokerage import BrokerageConnection, BrokerageAccount, BrokerId, ConnectionStatus
+from app.models.brokerage import BrokerageConnection, BrokerageAccount, BrokerId, ConnectionStatus, UserBrokerCredential
 from app.models.strategy import TradingStrategy, TradingPlan, StrategySource
 from app.models.conversation import Conversation, Message, MessageRole
 from app.models.audit import AuditLog, AuditAction
@@ -19,6 +19,7 @@ __all__ = [
     "BrokerageAccount",
     "BrokerId",
     "ConnectionStatus",
+    "UserBrokerCredential",
     # Strategy
     "TradingStrategy",
     "TradingPlan",
