@@ -30,10 +30,12 @@ export interface Position {
 export interface PortfolioSummary {
   total_value: number;
   total_cash: number;
-  total_invested: number;
-  day_change: number;
-  day_change_percent: number;
-  positions: Position[];
+  total_buying_power: number;
+  total_positions: number;
+  total_unrealized_pl: number;
+  total_unrealized_pl_percent: number;
+  by_broker: Record<string, unknown>;
+  last_updated: string;
 }
 
 // Trading types
