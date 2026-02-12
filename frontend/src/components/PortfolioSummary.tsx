@@ -23,11 +23,11 @@ export function PortfolioSummary({ summary }: PortfolioSummaryProps) {
         <Text>Total Portfolio Value</Text>
         <Metric>{formatCurrency(summary.total_value)}</Metric>
         <Flex className="mt-4">
-          <Text>Day Change</Text>
+          <Text>Unrealized P/L</Text>
           <BadgeDelta
-            deltaType={summary.day_change >= 0 ? 'increase' : 'decrease'}
+            deltaType={summary.total_unrealized_pl >= 0 ? 'increase' : 'decrease'}
           >
-            {formatPercent(summary.day_change_percent)}
+            {formatPercent(summary.total_unrealized_pl_percent ?? 0)}
           </BadgeDelta>
         </Flex>
       </Card>
@@ -41,23 +41,23 @@ export function PortfolioSummary({ summary }: PortfolioSummaryProps) {
       </Card>
 
       <Card decoration="top" decorationColor="indigo">
-        <Text>Invested Value</Text>
-        <Metric>{formatCurrency(summary.total_invested)}</Metric>
+        <Text>Buying Power</Text>
+        <Metric>{formatCurrency(summary.total_buying_power)}</Metric>
         <Flex className="mt-4">
-          <Text>{summary.positions?.length || 0} positions</Text>
+          <Text>{summary.total_positions || 0} positions</Text>
         </Flex>
       </Card>
 
-      <Card decoration="top" decorationColor={summary.day_change >= 0 ? 'emerald' : 'red'}>
-        <Text>Today's P/L</Text>
-        <Metric className={summary.day_change >= 0 ? 'text-emerald-600' : 'text-red-600'}>
-          {formatCurrency(summary.day_change)}
+      <Card decoration="top" decorationColor={summary.total_unrealized_pl >= 0 ? 'emerald' : 'red'}>
+        <Text>Unrealized P/L</Text>
+        <Metric className={summary.total_unrealized_pl >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+          {formatCurrency(summary.total_unrealized_pl)}
         </Metric>
         <Flex className="mt-4">
           <BadgeDelta
-            deltaType={summary.day_change >= 0 ? 'increase' : 'decrease'}
+            deltaType={summary.total_unrealized_pl >= 0 ? 'increase' : 'decrease'}
           >
-            {formatPercent(summary.day_change_percent)}
+            {formatPercent(summary.total_unrealized_pl_percent ?? 0)}
           </BadgeDelta>
         </Flex>
       </Card>

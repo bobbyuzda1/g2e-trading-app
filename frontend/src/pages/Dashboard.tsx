@@ -118,12 +118,12 @@ export function Dashboard() {
                 <div className="mt-4">
                   <Metric>{formatCurrency(portfolio.total_value)}</Metric>
                   <Flex className="mt-2">
-                    <Text>Today's change</Text>
+                    <Text>Unrealized P/L</Text>
                     <BadgeDelta
-                      deltaType={portfolio.day_change >= 0 ? 'increase' : 'decrease'}
+                      deltaType={portfolio.total_unrealized_pl >= 0 ? 'increase' : 'decrease'}
                     >
-                      {portfolio.day_change >= 0 ? '+' : ''}
-                      {portfolio.day_change_percent.toFixed(2)}%
+                      {portfolio.total_unrealized_pl >= 0 ? '+' : ''}
+                      {(portfolio.total_unrealized_pl_percent ?? 0).toFixed(2)}%
                     </BadgeDelta>
                   </Flex>
 
@@ -133,7 +133,7 @@ export function Dashboard() {
                       <Text>{formatCurrency(portfolio.total_cash)}</Text>
                     </Flex>
                     <ProgressBar
-                      value={(portfolio.total_cash / portfolio.total_value) * 100}
+                      value={portfolio.total_value > 0 ? (portfolio.total_cash / portfolio.total_value) * 100 : 0}
                       color="blue"
                       className="mt-2"
                     />

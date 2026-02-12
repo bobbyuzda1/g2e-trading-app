@@ -27,7 +27,7 @@ export function QuickStats({ portfolio, brokersCount, feedbackCount }: QuickStat
     },
     {
       title: 'Positions',
-      value: portfolio?.positions?.length?.toString() || '0',
+      value: portfolio?.total_positions?.toString() || '0',
       icon: ClockIcon,
       color: 'indigo',
     },
