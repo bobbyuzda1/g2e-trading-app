@@ -80,6 +80,19 @@ bash scripts/fetch-render-logs.sh save 1d  # Save last day to logs/
 ```
 Requires `RENDER_API_KEY` in `.env` (already configured).
 
+### Supabase Database
+Run SQL migrations and queries directly via the Supabase Management API:
+```bash
+bash scripts/run-supabase-sql.sh backend/migrations/002_user_broker_credentials.sql  # Run a migration file
+bash scripts/run-supabase-sql.sh -q "SELECT count(*) FROM users;"                   # Run inline SQL
+```
+Requires `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` in `.env` (already configured).
+
+**When schema changes are needed**, always:
+1. Create a new migration file in `backend/migrations/` (numbered sequentially)
+2. Run it with the script above
+3. Verify the change
+
 ## Environment Variables
 
 Backend environment variables are configured in Render dashboard:
