@@ -6,11 +6,12 @@ import secrets
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.brokerage import BrokerageConnection, BrokerageAccount, BrokerId, ConnectionStatus
+from app.models.brokerage import BrokerageConnection, BrokerageAccount, BrokerId, ConnectionStatus, UserBrokerCredential
 from app.brokers import IBrokerAdapter, AlpacaAdapter, ETradeAdapter
 from app.brokers.alpaca import AlpacaTokenSet
 from app.brokers.etrade import ETradeTokenSet
 from app.core.cache import CacheService
+from app.core.encryption import decrypt_value
 from app.config import get_settings
 
 settings = get_settings()
@@ -22,28 +23,54 @@ class BrokerageService:
     def __init__(self, db: AsyncSession, cache: CacheService | None = None):
         self.db = db
         self.cache = cache
-        self._adapters: dict[BrokerId, IBrokerAdapter] = {}
+        self._adapters: dict[str, IBrokerAdapter] = {}
         # In-memory store for OAuth state (in production, use Redis/DB)
         self._oauth_states: dict[str, dict] = {}
 
-    def get_adapter(self, broker_id: BrokerId) -> IBrokerAdapter:
-        """Get or create broker adapter."""
-        if broker_id not in self._adapters:
+    async def get_adapter(self, broker_id: BrokerId, user_id: UUID | None = None) -> IBrokerAdapter:
+        """Get or create broker adapter using per-user credentials."""
+        cache_key = f"{broker_id.value}:{user_id or 'default'}"
+
+        if cache_key not in self._adapters:
+            api_key = ""
+            api_secret = ""
+            is_sandbox = True
+
+            # Look up user-specific credentials from DB
+            if user_id:
+                stmt = select(UserBrokerCredential).where(
+                    UserBrokerCredential.user_id == user_id,
+                    UserBrokerCredential.broker_id == broker_id,
+                )
+                result = await self.db.execute(stmt)
+                cred = result.scalar_one_or_none()
+                if cred:
+                    api_key = decrypt_value(cred.encrypted_key)
+                    api_secret = decrypt_value(cred.encrypted_secret)
+                    is_sandbox = cred.is_sandbox
+
+            if not api_key:
+                raise ValueError(
+                    f"No API credentials found for {broker_id.value}. "
+                    "Please save your API keys in Settings before connecting."
+                )
+
             if broker_id == BrokerId.ALPACA:
-                self._adapters[broker_id] = AlpacaAdapter(
-                    client_id=settings.alpaca_client_id,
-                    client_secret=settings.alpaca_client_secret,
-                    paper=settings.alpaca_paper,
+                self._adapters[cache_key] = AlpacaAdapter(
+                    client_id=api_key,
+                    client_secret=api_secret,
+                    paper=is_sandbox,
                 )
             elif broker_id == BrokerId.ETRADE:
-                self._adapters[broker_id] = ETradeAdapter(
-                    consumer_key=settings.etrade_consumer_key,
-                    consumer_secret=settings.etrade_consumer_secret,
-                    sandbox=settings.etrade_sandbox,
+                self._adapters[cache_key] = ETradeAdapter(
+                    consumer_key=api_key,
+                    consumer_secret=api_secret,
+                    sandbox=is_sandbox,
                 )
             else:
                 raise ValueError(f"Unsupported broker: {broker_id}")
-        return self._adapters[broker_id]
+
+        return self._adapters[cache_key]
 
     async def initiate_connection(
         self,
@@ -52,7 +79,7 @@ class BrokerageService:
         redirect_uri: str,
     ) -> tuple[str, str]:
         """Initiate OAuth connection flow. Returns (auth_url, state)."""
-        adapter = self.get_adapter(broker_id)
+        adapter = await self.get_adapter(broker_id, user_id)
         state = secrets.token_urlsafe(32)
 
         # Store state for verification (in cache if available, otherwise in-memory)
@@ -118,7 +145,7 @@ class BrokerageService:
         if state_data.get("user_id") != str(user_id):
             raise ValueError("State does not match user")
 
-        adapter = self.get_adapter(broker_id)
+        adapter = await self.get_adapter(broker_id, user_id)
         tokens = await adapter.handle_oauth_callback(callback_data, redirect_uri)
 
         # Update connection
@@ -244,7 +271,7 @@ class BrokerageService:
         """Refresh tokens for a connection if supported."""
         try:
             current_tokens = await self.get_token_set(connection)
-            adapter = self.get_adapter(connection.broker_id)
+            adapter = await self.get_adapter(connection.broker_id, connection.user_id)
 
             # For Alpaca, use refresh_token
             if connection.broker_id == BrokerId.ALPACA and current_tokens.refresh_token:

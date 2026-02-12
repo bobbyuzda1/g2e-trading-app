@@ -14,9 +14,14 @@ from app.schemas.brokerage import (
     BrokerageAccountResponse,
     OAuthStartResponse,
     OAuthCallbackRequest,
+    BrokerCredentialSave,
+    BrokerCredentialResponse,
 )
 from app.schemas.common import MessageResponse
+from app.models.brokerage import UserBrokerCredential
+from app.core.encryption import encrypt_value, decrypt_value
 from app.api.deps import CurrentUser
+from sqlalchemy import select
 
 router = APIRouter(prefix="/brokerages", tags=["Brokerages"])
 
@@ -168,3 +173,103 @@ async def list_accounts(
     """List all brokerage accounts for current user."""
     accounts = await service.get_accounts(current_user.id, broker_id)
     return accounts
+
+
+# --- Per-user broker API credentials ---
+
+def _mask_key(key: str) -> str:
+    """Show first 3 and last 3 chars of a key."""
+    if len(key) <= 8:
+        return key[:2] + "..." + key[-2:]
+    return key[:3] + "..." + key[-3:]
+
+
+@router.get("/credentials", response_model=list[BrokerCredentialResponse])
+async def list_credentials(
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """List which brokers the user has saved API keys for."""
+    stmt = select(UserBrokerCredential).where(
+        UserBrokerCredential.user_id == current_user.id,
+    )
+    result = await db.execute(stmt)
+    creds = result.scalars().all()
+
+    return [
+        BrokerCredentialResponse(
+            broker_id=c.broker_id,
+            has_credentials=True,
+            is_sandbox=c.is_sandbox,
+            api_key_hint=_mask_key(decrypt_value(c.encrypted_key)),
+        )
+        for c in creds
+    ]
+
+
+@router.put("/credentials", response_model=BrokerCredentialResponse)
+async def save_credentials(
+    body: BrokerCredentialSave,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Save or update broker API credentials for the current user."""
+    if not body.api_key.strip() or not body.api_secret.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="API key and secret are required.",
+        )
+
+    # Upsert
+    stmt = select(UserBrokerCredential).where(
+        UserBrokerCredential.user_id == current_user.id,
+        UserBrokerCredential.broker_id == body.broker_id,
+    )
+    result = await db.execute(stmt)
+    cred = result.scalar_one_or_none()
+
+    if cred:
+        cred.encrypted_key = encrypt_value(body.api_key.strip())
+        cred.encrypted_secret = encrypt_value(body.api_secret.strip())
+        cred.is_sandbox = body.is_sandbox
+    else:
+        cred = UserBrokerCredential(
+            user_id=current_user.id,
+            broker_id=body.broker_id,
+            encrypted_key=encrypt_value(body.api_key.strip()),
+            encrypted_secret=encrypt_value(body.api_secret.strip()),
+            is_sandbox=body.is_sandbox,
+        )
+        db.add(cred)
+
+    await db.commit()
+    await db.refresh(cred)
+
+    return BrokerCredentialResponse(
+        broker_id=cred.broker_id,
+        has_credentials=True,
+        is_sandbox=cred.is_sandbox,
+        api_key_hint=_mask_key(body.api_key.strip()),
+    )
+
+
+@router.delete("/credentials/{broker_id}", response_model=MessageResponse)
+async def delete_credentials(
+    broker_id: BrokerId,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Delete saved broker API credentials."""
+    stmt = select(UserBrokerCredential).where(
+        UserBrokerCredential.user_id == current_user.id,
+        UserBrokerCredential.broker_id == broker_id,
+    )
+    result = await db.execute(stmt)
+    cred = result.scalar_one_or_none()
+
+    if not cred:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No credentials found")
+
+    await db.delete(cred)
+    await db.commit()
+    return MessageResponse(message="Credentials deleted")
