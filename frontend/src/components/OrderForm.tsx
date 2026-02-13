@@ -89,7 +89,7 @@ export function OrderForm({ onPreview }: OrderFormProps) {
         <Select value={brokerId} onValueChange={setBrokerId}>
           {brokers.map((broker) => (
             <SelectItem key={broker.id} value={broker.id}>
-              {broker.broker} - {broker.account_id}
+              {broker.broker_id}
             </SelectItem>
           ))}
         </Select>

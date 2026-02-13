@@ -6,16 +6,20 @@ interface PortfolioSummaryProps {
 }
 
 export function PortfolioSummary({ summary }: PortfolioSummaryProps) {
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(value);
+    }).format(Number(value) || 0);
   };
 
-  const formatPercent = (value: number) => {
-    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+  const formatPercent = (value: number | string) => {
+    const num = Number(value) || 0;
+    return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
   };
+
+  const pl = Number(summary.total_unrealized_pl) || 0;
+  const plPercent = Number(summary.total_unrealized_pl_percent) || 0;
 
   return (
     <Grid numItemsSm={2} numItemsLg={4} className="gap-6">
@@ -25,9 +29,9 @@ export function PortfolioSummary({ summary }: PortfolioSummaryProps) {
         <Flex className="mt-4">
           <Text>Unrealized P/L</Text>
           <BadgeDelta
-            deltaType={summary.total_unrealized_pl >= 0 ? 'increase' : 'decrease'}
+            deltaType={pl >= 0 ? 'increase' : 'decrease'}
           >
-            {formatPercent(summary.total_unrealized_pl_percent ?? 0)}
+            {formatPercent(plPercent)}
           </BadgeDelta>
         </Flex>
       </Card>
@@ -44,20 +48,20 @@ export function PortfolioSummary({ summary }: PortfolioSummaryProps) {
         <Text>Buying Power</Text>
         <Metric>{formatCurrency(summary.total_buying_power)}</Metric>
         <Flex className="mt-4">
-          <Text>{summary.total_positions || 0} positions</Text>
+          <Text>{Number(summary.total_positions) || 0} positions</Text>
         </Flex>
       </Card>
 
-      <Card decoration="top" decorationColor={summary.total_unrealized_pl >= 0 ? 'emerald' : 'red'}>
+      <Card decoration="top" decorationColor={pl >= 0 ? 'emerald' : 'red'}>
         <Text>Unrealized P/L</Text>
-        <Metric className={summary.total_unrealized_pl >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+        <Metric className={pl >= 0 ? 'text-emerald-600' : 'text-red-600'}>
           {formatCurrency(summary.total_unrealized_pl)}
         </Metric>
         <Flex className="mt-4">
           <BadgeDelta
-            deltaType={summary.total_unrealized_pl >= 0 ? 'increase' : 'decrease'}
+            deltaType={pl >= 0 ? 'increase' : 'decrease'}
           >
-            {formatPercent(summary.total_unrealized_pl_percent ?? 0)}
+            {formatPercent(plPercent)}
           </BadgeDelta>
         </Flex>
       </Card>

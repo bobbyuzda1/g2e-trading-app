@@ -16,15 +16,16 @@ interface PositionsTableProps {
 }
 
 export function PositionsTable({ positions }: PositionsTableProps) {
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(value);
+    }).format(Number(value) || 0);
   };
 
-  const formatPercent = (value: number) => {
-    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+  const formatPercent = (value: number | string) => {
+    const num = Number(value) || 0;
+    return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
   };
 
   if (positions.length === 0) {
@@ -72,12 +73,12 @@ export function PositionsTable({ positions }: PositionsTableProps) {
               <TableCell className="text-right">
                 <div className="flex flex-col items-end">
                   <Text
-                    className={position.unrealized_pl >= 0 ? 'text-emerald-600' : 'text-red-600'}
+                    className={Number(position.unrealized_pl) >= 0 ? 'text-emerald-600' : 'text-red-600'}
                   >
                     {formatCurrency(position.unrealized_pl)}
                   </Text>
                   <Badge
-                    color={position.unrealized_pl_percent >= 0 ? 'emerald' : 'red'}
+                    color={Number(position.unrealized_pl_percent) >= 0 ? 'emerald' : 'red'}
                     size="xs"
                   >
                     {formatPercent(position.unrealized_pl_percent)}
