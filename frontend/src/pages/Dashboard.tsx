@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { Component, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Title, Text, Grid, Card, Metric, Flex, BadgeDelta, ProgressBar } from '@tremor/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,7 +8,47 @@ import { QuickStats } from '../components/QuickStats';
 import { RecentActivity } from '../components/RecentActivity';
 import type { PortfolioSummary, Conversation, BrokerConnection } from '../types';
 
-export function Dashboard() {
+// Error boundary to prevent white screen crashes
+class DashboardErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Card className="mt-6">
+          <Title className="text-red-600">Something went wrong</Title>
+          <Text className="mt-2 text-gray-600">
+            The dashboard encountered an error. Please try refreshing the page.
+          </Text>
+          <pre className="mt-4 p-3 bg-gray-100 rounded text-xs text-red-700 overflow-auto">
+            {this.state.error?.message}
+            {'\n'}
+            {this.state.error?.stack}
+          </pre>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+          >
+            Refresh Page
+          </button>
+        </Card>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function DashboardContent() {
   const { user } = useAuth();
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -33,13 +74,15 @@ export function Dashboard() {
         setPortfolio(portfolioRes.value.data);
       }
       if (conversationsRes.status === 'fulfilled') {
-        setConversations(conversationsRes.value.data.slice(0, 5));
+        const data = conversationsRes.value.data;
+        setConversations(Array.isArray(data) ? data.slice(0, 5) : []);
       }
       if (brokersRes.status === 'fulfilled') {
-        setBrokers(brokersRes.value.data);
+        const data = brokersRes.value.data;
+        setBrokers(Array.isArray(data) ? data : []);
       }
       if (profileRes.status === 'fulfilled' && profileRes.value.data) {
-        setFeedbackCount(profileRes.value.data.total_feedback_count || 0);
+        setFeedbackCount(Number(profileRes.value.data.total_feedback_count) || 0);
       }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -48,13 +91,13 @@ export function Dashboard() {
     }
   };
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(value);
+    }).format(Number(value) || 0);
   };
 
   const getGreeting = () => {
@@ -71,6 +114,11 @@ export function Dashboard() {
       </div>
     );
   }
+
+  const plValue = Number(portfolio?.total_unrealized_pl) || 0;
+  const plPercent = Number(portfolio?.total_unrealized_pl_percent) || 0;
+  const totalValue = Number(portfolio?.total_value) || 0;
+  const totalCash = Number(portfolio?.total_cash) || 0;
 
   return (
     <div className="space-y-6">
@@ -116,24 +164,23 @@ export function Dashboard() {
 
               {portfolio ? (
                 <div className="mt-4">
-                  <Metric>{formatCurrency(portfolio.total_value)}</Metric>
+                  <Metric>{formatCurrency(totalValue)}</Metric>
                   <Flex className="mt-2">
                     <Text>Unrealized P/L</Text>
                     <BadgeDelta
-                      deltaType={portfolio.total_unrealized_pl >= 0 ? 'increase' : 'decrease'}
+                      deltaType={plValue >= 0 ? 'increase' : 'decrease'}
                     >
-                      {portfolio.total_unrealized_pl >= 0 ? '+' : ''}
-                      {(portfolio.total_unrealized_pl_percent ?? 0).toFixed(2)}%
+                      {plValue >= 0 ? '+' : ''}{plPercent.toFixed(2)}%
                     </BadgeDelta>
                   </Flex>
 
                   <div className="mt-4">
                     <Flex>
                       <Text>Cash</Text>
-                      <Text>{formatCurrency(portfolio.total_cash)}</Text>
+                      <Text>{formatCurrency(totalCash)}</Text>
                     </Flex>
                     <ProgressBar
-                      value={portfolio.total_value > 0 ? (portfolio.total_cash / portfolio.total_value) * 100 : 0}
+                      value={totalValue > 0 ? (totalCash / totalValue) * 100 : 0}
                       color="blue"
                       className="mt-2"
                     />
@@ -189,5 +236,13 @@ export function Dashboard() {
         </>
       )}
     </div>
+  );
+}
+
+export function Dashboard() {
+  return (
+    <DashboardErrorBoundary>
+      <DashboardContent />
+    </DashboardErrorBoundary>
   );
 }
