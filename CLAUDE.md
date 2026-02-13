@@ -123,6 +123,19 @@ Backend environment variables are configured in Render dashboard:
 | Alpaca | Complete | Needs API keys |
 | Schwab | Planned | Not started |
 
+### E*TRADE API References
+
+Always consult these when troubleshooting or building E*TRADE features:
+
+- **Sandbox API Docs** (primary reference for endpoints, request/response formats):
+  - Accounts: https://apisb.etrade.com/docs/api/account/api-account-v1.html
+  - Balances: https://apisb.etrade.com/docs/api/account/api-balance-v1.html
+  - Portfolio: https://apisb.etrade.com/docs/api/account/api-portfolio-v1.html
+  - Quotes: https://apisb.etrade.com/docs/api/market/api-quote-v1.html
+- **Developer Guides** (OAuth, getting started, best practices):
+  - Overview: https://developer.etrade.com/getting-started/developer-guides
+  - OAuth Guide: https://developer.etrade.com/getting-started/developer-guides#tab_1
+
 ## AI Knowledge Base
 
 - Strategy protocols in `backend/app/core/knowledge_base.py`
