@@ -78,11 +78,12 @@ class ETradeAdapter(IBrokerAdapter):
             requires_manual_reauth=True,  # Requires re-auth after 120 days
         )
 
-    async def get_request_token(self) -> tuple[str, str]:
+    async def get_request_token(self, redirect_uri: str | None = None) -> tuple[str, str]:
         """Get OAuth 1.0a request token (step 1 of 3-legged OAuth)."""
         client = OAuth1Client(
             client_id=self._consumer_key,
             client_secret=self._consumer_secret,
+            redirect_uri=redirect_uri,
         )
 
         url = f"{self._base_url}{self.REQUEST_TOKEN_URL}"
@@ -107,7 +108,7 @@ class ETradeAdapter(IBrokerAdapter):
 
         The state parameter stores the request_token_secret for later use.
         """
-        request_token, request_token_secret = await self.get_request_token()
+        request_token, request_token_secret = await self.get_request_token(redirect_uri)
         # Store request_token_secret in state (will need it for access token)
         # In practice, this should be stored securely server-side
         auth_url = self._build_authorize_url(request_token)
