@@ -47,6 +47,7 @@ class OAuthStartResponse(BaseSchema):
     authorization_url: str
     state: str
     expires_in: int
+    is_oob: bool = False  # True when user must manually copy verifier (e.g. E*TRADE sandbox)
 
 
 class OAuthCallbackRequest(BaseSchema):

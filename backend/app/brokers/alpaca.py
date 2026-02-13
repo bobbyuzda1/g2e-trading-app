@@ -153,9 +153,9 @@ class AlpacaAdapter(IBrokerAdapter):
         }
         return f"{self.OAUTH_URL}?{urlencode(params)}"
 
-    async def get_authorization_url(self, state: str, redirect_uri: str) -> str:
+    async def get_authorization_url(self, state: str, redirect_uri: str) -> tuple[str, dict]:
         """Get OAuth authorization URL."""
-        return self._build_auth_url(state, redirect_uri)
+        return self._build_auth_url(state, redirect_uri), {}
 
     async def handle_oauth_callback(
         self,

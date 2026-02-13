@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 import secrets
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.brokerage import BrokerageConnection, BrokerageAccount, BrokerId, ConnectionStatus, UserBrokerCredential
@@ -77,16 +77,20 @@ class BrokerageService:
         user_id: UUID,
         broker_id: BrokerId,
         redirect_uri: str,
-    ) -> tuple[str, str]:
-        """Initiate OAuth connection flow. Returns (auth_url, state)."""
+    ) -> tuple[str, str, bool]:
+        """Initiate OAuth connection flow. Returns (auth_url, state, is_oob)."""
         adapter = await self.get_adapter(broker_id, user_id)
         state = secrets.token_urlsafe(32)
+
+        auth_url, metadata = await adapter.get_authorization_url(state, redirect_uri)
+        is_oob = metadata.get("is_oob", False)
 
         # Store state for verification (in cache if available, otherwise in-memory)
         state_data = {
             "user_id": str(user_id),
             "broker_id": broker_id.value,
             "redirect_uri": redirect_uri,
+            **metadata,  # includes request_token_secret, is_oob, etc.
         }
 
         cache_ok = False
@@ -99,6 +103,15 @@ class BrokerageService:
         if not cache_ok:
             self._oauth_states[state] = state_data
 
+        # Clean up any stale pending connections for this user/broker
+        await self.db.execute(
+            delete(BrokerageConnection).where(
+                BrokerageConnection.user_id == user_id,
+                BrokerageConnection.broker_id == broker_id,
+                BrokerageConnection.status == ConnectionStatus.PENDING,
+            )
+        )
+
         # Create pending connection record
         connection = BrokerageConnection(
             user_id=user_id,
@@ -108,8 +121,7 @@ class BrokerageService:
         self.db.add(connection)
         await self.db.commit()
 
-        auth_url = await adapter.get_authorization_url(state, redirect_uri)
-        return auth_url, state
+        return auth_url, state, is_oob
 
     async def complete_connection(
         self,
@@ -144,6 +156,10 @@ class BrokerageService:
 
         if state_data.get("user_id") != str(user_id):
             raise ValueError("State does not match user")
+
+        # Inject stored metadata into callback_data (e.g. request_token_secret)
+        if state_data.get("request_token_secret"):
+            callback_data["oauth_token_secret"] = state_data["request_token_secret"]
 
         adapter = await self.get_adapter(broker_id, user_id)
         tokens = await adapter.handle_oauth_callback(callback_data, redirect_uri)
