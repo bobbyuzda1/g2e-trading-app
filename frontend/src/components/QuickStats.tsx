@@ -9,13 +9,13 @@ interface QuickStatsProps {
 }
 
 export function QuickStats({ portfolio, brokersCount, feedbackCount }: QuickStatsProps) {
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(value);
+    }).format(Number(value) || 0);
   };
 
   const stats = [

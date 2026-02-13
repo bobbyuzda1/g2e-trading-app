@@ -103,10 +103,16 @@ export interface StrategyAnalysis {
 // Brokerage types
 export interface BrokerConnection {
   id: string;
-  broker: string;
-  account_id: string;
-  is_active: boolean;
-  connected_at: string;
+  user_id: string;
+  broker_id: string;
+  status: string;
+  nickname: string | null;
+  connected_at: string | null;
+  last_sync_at: string | null;
+  expires_at: string | null;
+  is_primary: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface BrokerCredential {

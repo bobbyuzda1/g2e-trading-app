@@ -79,7 +79,8 @@ function DashboardContent() {
       }
       if (brokersRes.status === 'fulfilled') {
         const data = brokersRes.value.data;
-        setBrokers(Array.isArray(data) ? data : []);
+        const allBrokers = Array.isArray(data) ? data : [];
+        setBrokers(allBrokers.filter((b: BrokerConnection) => b.status === 'active'));
       }
       if (profileRes.status === 'fulfilled' && profileRes.value.data) {
         setFeedbackCount(Number(profileRes.value.data.total_feedback_count) || 0);

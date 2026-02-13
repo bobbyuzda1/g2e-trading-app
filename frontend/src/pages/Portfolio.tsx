@@ -57,7 +57,7 @@ export function Portfolio() {
   }
 
   // Show empty state if no broker connected
-  if (!summary || summary.total_value === 0) {
+  if (!summary || Number(summary.total_value) === 0) {
     return (
       <div className="space-y-6">
         <div>

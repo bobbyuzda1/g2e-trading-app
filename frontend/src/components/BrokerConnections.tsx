@@ -134,12 +134,15 @@ export function BrokerConnections() {
   };
 
   const isConnected = (brokerId: string) => {
-    return connections.some((c) => c.broker.toLowerCase() === brokerId && c.is_active);
+    return connections.some((c) => c.broker_id === brokerId && c.status === 'active');
   };
 
   const getCredential = (brokerId: string) => {
     return credentials.find((c) => c.broker_id === brokerId);
   };
+
+  // Only show active connections (not pending/expired)
+  const activeConnections = connections.filter((c) => c.status === 'active');
 
   if (isLoading) {
     return (
@@ -171,7 +174,7 @@ export function BrokerConnections() {
         <Title className="text-lg">Connected Brokers</Title>
         <Text className="mt-1">Manage your brokerage connections.</Text>
 
-        {connections.length === 0 ? (
+        {activeConnections.length === 0 ? (
           <div className="mt-6 text-center py-8 bg-gray-50 rounded-lg">
             <LinkIcon className="mx-auto h-12 w-12 text-gray-400" />
             <Text className="mt-2 text-gray-500">No brokers connected yet.</Text>
@@ -181,7 +184,7 @@ export function BrokerConnections() {
           </div>
         ) : (
           <div className="mt-4 space-y-3">
-            {connections.map((connection) => (
+            {activeConnections.map((connection) => (
               <div
                 key={connection.id}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
@@ -189,19 +192,19 @@ export function BrokerConnections() {
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                     <Text className="font-bold text-blue-600">
-                      {connection.broker[0]}
+                      {connection.broker_id[0].toUpperCase()}
                     </Text>
                   </div>
                   <div>
-                    <Text className="font-medium">{connection.broker}</Text>
+                    <Text className="font-medium">{connection.broker_id}</Text>
                     <Text className="text-sm text-gray-500">
-                      Account: {connection.account_id}
+                      Status: {connection.status}
                     </Text>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Badge color={connection.is_active ? 'green' : 'gray'}>
-                    {connection.is_active ? 'Active' : 'Inactive'}
+                  <Badge color={connection.status === 'active' ? 'green' : 'gray'}>
+                    {connection.status}
                   </Badge>
                   <button
                     onClick={() => handleDisconnect(connection.id)}
