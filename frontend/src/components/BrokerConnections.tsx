@@ -30,6 +30,10 @@ export function BrokerConnections() {
   const [keyForm, setKeyForm] = useState({ api_key: '', api_secret: '', is_sandbox: true });
   const [showSecret, setShowSecret] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // OOB (out-of-band) verifier flow for E*TRADE sandbox
+  const [oobState, setOobState] = useState<{ broker: string; state: string; authUrl: string } | null>(null);
+  const [verifierCode, setVerifierCode] = useState('');
+  const [submittingVerifier, setSubmittingVerifier] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -64,12 +68,48 @@ export function BrokerConnections() {
     try {
       const redirectUri = `${window.location.origin}/settings?broker=${broker}`;
       const response = await brokerageApi.initiateConnection(broker, redirectUri);
-      window.location.href = response.data.authorization_url;
+      const { authorization_url, state, is_oob } = response.data;
+
+      if (is_oob) {
+        // Sandbox OOB flow: open auth page in new tab, show verifier input
+        window.open(authorization_url, '_blank');
+        setOobState({ broker, state, authUrl: authorization_url });
+        setVerifierCode('');
+        setConnectingBroker(null);
+      } else {
+        // Standard redirect flow
+        window.location.href = authorization_url;
+      }
     } catch (error: any) {
       console.error('Failed to initiate connection:', error);
       const detail = error.response?.data?.detail || 'Failed to connect broker. Please try again.';
       alert(detail);
       setConnectingBroker(null);
+    }
+  };
+
+  const handleSubmitVerifier = async () => {
+    if (!oobState || !verifierCode.trim()) return;
+
+    setSubmittingVerifier(true);
+    try {
+      const redirectUri = `${window.location.origin}/settings?broker=${oobState.broker}`;
+      await brokerageApi.completeOAuth(oobState.broker, redirectUri, {
+        state: oobState.state,
+        oauth_verifier: verifierCode.trim(),
+      });
+
+      // Success - reload data
+      setOobState(null);
+      setVerifierCode('');
+      setSaveMessage({ type: 'success', text: 'Broker connected successfully!' });
+      await loadData();
+    } catch (error: any) {
+      console.error('Failed to complete OAuth:', error);
+      const detail = error.response?.data?.detail || 'Invalid verifier code. Please try again.';
+      setSaveMessage({ type: 'error', text: detail });
+    } finally {
+      setSubmittingVerifier(false);
     }
   };
 
@@ -167,6 +207,51 @@ export function BrokerConnections() {
         >
           {saveMessage.text}
         </div>
+      )}
+
+      {/* OOB Verifier Input (E*TRADE sandbox) */}
+      {oobState && (
+        <Card className="border-2 border-blue-300 bg-blue-50">
+          <Title className="text-lg text-blue-800">Enter Verification Code</Title>
+          <Text className="mt-1 text-blue-700">
+            A new tab was opened for E*TRADE authorization. After approving, copy the
+            verification code shown on the E*TRADE page and paste it below.
+          </Text>
+          <div className="mt-4 space-y-3 max-w-md">
+            <input
+              type="text"
+              value={verifierCode}
+              onChange={(e) => setVerifierCode(e.target.value)}
+              placeholder="Paste verifier code here"
+              className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              autoFocus
+            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSubmitVerifier}
+                disabled={submittingVerifier || !verifierCode.trim()}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                {submittingVerifier ? 'Verifying...' : 'Submit Code'}
+              </button>
+              <button
+                onClick={() => window.open(oobState.authUrl, '_blank')}
+                className="px-4 py-2 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                Re-open Auth Page
+              </button>
+              <button
+                onClick={() => {
+                  setOobState(null);
+                  setVerifierCode('');
+                }}
+                className="px-4 py-2 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Card>
       )}
 
       {/* Connected Brokers */}

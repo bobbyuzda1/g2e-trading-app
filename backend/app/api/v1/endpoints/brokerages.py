@@ -70,7 +70,7 @@ async def initiate_connection(
 ):
     """Initiate OAuth connection to a brokerage."""
     try:
-        auth_url, state = await service.initiate_connection(
+        auth_url, state, is_oob = await service.initiate_connection(
             user_id=current_user.id,
             broker_id=broker_id,
             redirect_uri=redirect_uri,
@@ -79,6 +79,7 @@ async def initiate_connection(
             authorization_url=auth_url,
             state=state,
             expires_in=600,  # 10 minutes
+            is_oob=is_oob,
         )
     except ValueError as e:
         raise HTTPException(

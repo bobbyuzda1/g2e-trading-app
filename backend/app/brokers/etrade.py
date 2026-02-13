@@ -99,20 +99,29 @@ class ETradeAdapter(IBrokerAdapter):
         }
         return f"{self.AUTHORIZE_URL}?{urlencode(params)}"
 
-    async def get_authorization_url(self, state: str, redirect_uri: str) -> str:
+    async def get_authorization_url(self, state: str, redirect_uri: str) -> tuple[str, dict]:
         """Get OAuth authorization URL.
 
         For E*TRADE OAuth 1.0a:
-        1. First get request token
+        1. First get request token (with oob callback for sandbox)
         2. Return authorize URL with request token
 
-        The state parameter stores the request_token_secret for later use.
+        Returns (auth_url, metadata) where metadata contains
+        request_token_secret and is_oob flag.
         """
-        request_token, request_token_secret = await self.get_request_token(redirect_uri)
-        # Store request_token_secret in state (will need it for access token)
-        # In practice, this should be stored securely server-side
+        # E*TRADE sandbox only accepts 'oob' callback
+        is_oob = self._sandbox
+        callback = "oob" if is_oob else redirect_uri
+
+        request_token, request_token_secret = await self.get_request_token(callback)
         auth_url = self._build_authorize_url(request_token)
-        return f"{auth_url}&callback={redirect_uri}"
+
+        metadata = {
+            "request_token": request_token,
+            "request_token_secret": request_token_secret,
+            "is_oob": is_oob,
+        }
+        return auth_url, metadata
 
     async def handle_oauth_callback(
         self,

@@ -73,8 +73,14 @@ class IBrokerAdapter(ABC):
 
     # Authentication
     @abstractmethod
-    async def get_authorization_url(self, state: str, redirect_uri: str) -> str:
-        """Get OAuth authorization URL."""
+    async def get_authorization_url(self, state: str, redirect_uri: str) -> tuple[str, dict]:
+        """Get OAuth authorization URL.
+
+        Returns:
+            Tuple of (authorization_url, metadata_dict).
+            metadata_dict may contain extra data to store in the OAuth state,
+            such as request_token_secret for OAuth 1.0a or is_oob flag.
+        """
         ...
 
     @abstractmethod
