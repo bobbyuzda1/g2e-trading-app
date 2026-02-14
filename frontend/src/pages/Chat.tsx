@@ -127,15 +127,20 @@ export function Chat() {
     try {
       // Send message — backend creates conversation if conversation_id is null
       const response = await chatApi.sendMessage(content.trim(), activeConversation || undefined);
-      const { conversation_id, message: userMsg, response: assistantMsg } = response.data;
+      const { conversation_id, conversation_title, message: userMsg, response: assistantMsg } = response.data;
 
-      // If we didn't have a conversation, set it now
+      // If we didn't have a conversation, set it now and reload list
       if (!activeConversation) {
         setActiveConversation(conversation_id);
+        loadConversations();
       }
 
-      // Reload conversation list to pick up AI-generated title
-      loadConversations();
+      // Update sidebar title immediately if backend returned one
+      if (conversation_title) {
+        setConversations((prev) =>
+          prev.map((c) => (c.id === conversation_id ? { ...c, title: conversation_title } : c))
+        );
+      }
 
       // Replace temp message and add AI response
       setMessages((prev) => {

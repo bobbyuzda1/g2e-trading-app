@@ -214,6 +214,7 @@ async def send_message(
 
         return ChatResponse(
             conversation_id=conversation.id,
+            conversation_title=conversation.title,
             message=MessageResponse(
                 id=user_msg.id,
                 conversation_id=user_msg.conversation_id,

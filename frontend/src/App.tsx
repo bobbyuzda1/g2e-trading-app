@@ -8,6 +8,7 @@ import { Chat } from './pages/Chat';
 import { Research } from './pages/Research';
 import { Strategies } from './pages/Strategies';
 import { Settings } from './pages/Settings';
+import { Disclosures } from './pages/Disclosures';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
 
@@ -85,6 +86,17 @@ function App() {
           <ProtectedRoute>
             <DashboardLayout>
               <Settings />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/disclosures"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <Disclosures />
             </DashboardLayout>
           </ProtectedRoute>
         }

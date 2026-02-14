@@ -59,6 +59,7 @@ class ChatRequest(BaseSchema):
 class ChatResponse(BaseSchema):
     """Chat response schema."""
     conversation_id: UUID
+    conversation_title: str | None = None
     message: MessageResponse
     response: MessageResponse
 

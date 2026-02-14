@@ -193,11 +193,11 @@ class ConversationService:
             # Generate AI title from the message
             try:
                 title, _ = await self._gemini.generate(
-                    prompt=f"Generate a very short title (3-6 words, no quotes) for a conversation that starts with: {message[:200]}",
+                    prompt=f"Generate a 2-3 word title (no quotes, no punctuation) summarizing this message: {message[:200]}",
                     temperature=0.3,
-                    max_tokens=30,
+                    max_tokens=15,
                 )
-                title = title.strip().strip('"').strip("'")[:50]
+                title = title.strip().strip('"').strip("'").rstrip(".")[:40]
             except Exception:
                 title = message[:50] + ("..." if len(message) > 50 else "")
             conversation.title = title
