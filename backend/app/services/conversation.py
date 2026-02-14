@@ -133,6 +133,8 @@ class ConversationService:
         conversation_id: UUID | None = None,
         portfolio_context: dict | None = None,
         feedback_context: str | None = None,
+        strategy_name: str | None = None,
+        strategy_context: str | None = None,
     ) -> tuple[Conversation, Message, Message]:
         """Send a chat message and get AI response.
 
@@ -159,6 +161,8 @@ class ConversationService:
 
         # Build context
         context_parts = []
+        if strategy_context:
+            context_parts.append(strategy_context)
         if portfolio_context:
             context_parts.append(f"User Portfolio:\n{portfolio_context}")
         if feedback_context:
@@ -171,6 +175,7 @@ class ConversationService:
             prompt=message,
             context=context,
             history=history[:-1],  # Exclude the just-added message
+            strategy_name=strategy_name,
         )
 
         # Add assistant message
@@ -185,8 +190,16 @@ class ConversationService:
 
         # Update conversation title if it's the first message
         if len(history) <= 1:
-            # Generate a title from the first message
-            title = message[:50] + "..." if len(message) > 50 else message
+            # Generate AI title from the message
+            try:
+                title, _ = await self._gemini.generate(
+                    prompt=f"Generate a very short title (3-6 words, no quotes) for a conversation that starts with: {message[:200]}",
+                    temperature=0.3,
+                    max_tokens=30,
+                )
+                title = title.strip().strip('"').strip("'")[:50]
+            except Exception:
+                title = message[:50] + ("..." if len(message) > 50 else "")
             conversation.title = title
             await self.db.commit()
 

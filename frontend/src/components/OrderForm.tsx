@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { TextInput, Select, SelectItem, NumberInput, Button } from '@tremor/react';
 import { tradingApi, brokerageApi } from '../lib/api';
+import { useTheme } from '../contexts/ThemeContext';
 import type { OrderPreview, BrokerConnection } from '../types';
 
 interface OrderFormProps {
-  onPreview: (preview: OrderPreview) => void;
+  onPreview: (preview: OrderPreview, brokerId: string, orderType: string, limitPrice?: number) => void;
 }
 
 export function OrderForm({ onPreview }: OrderFormProps) {
+  const { theme } = useTheme();
   const [brokers, setBrokers] = useState<BrokerConnection[]>([]);
   const [brokerId, setBrokerId] = useState('');
   const [symbol, setSymbol] = useState('');
@@ -25,7 +27,8 @@ export function OrderForm({ onPreview }: OrderFormProps) {
   const loadBrokers = async () => {
     try {
       const response = await brokerageApi.getConnections();
-      const active = response.data.filter((b: BrokerConnection) => b.status === 'active');
+      const data = Array.isArray(response.data) ? response.data : [];
+      const active = data.filter((b: BrokerConnection) => b.status === 'active');
       setBrokers(active);
       if (active.length > 0) {
         setBrokerId(active[0].broker_id);
@@ -54,23 +57,24 @@ export function OrderForm({ onPreview }: OrderFormProps) {
         order_type: orderType,
         limit_price: orderType === 'limit' ? limitPrice : undefined,
       });
-      onPreview(response.data);
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: { detail?: unknown } } };
-      const detail = error.response?.data?.detail;
+      onPreview(response.data, brokerId, orderType, orderType === 'limit' ? limitPrice : undefined);
+    } catch (err: any) {
+      const detail = err.response?.data?.detail;
       const message = typeof detail === 'string' ? detail
         : Array.isArray(detail) ? detail.map((d: { msg?: string }) => d.msg || '').join(', ')
-        : 'Failed to preview order';
+        : 'Failed to preview order. Check your broker connection.';
       setError(message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const labelClass = `block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`;
+
   if (brokers.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500 mb-4">No brokers connected</p>
+        <p className={`mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>No brokers connected</p>
         <a
           href="/settings"
           className="text-primary-600 hover:text-primary-700 font-medium"
@@ -84,13 +88,13 @@ export function OrderForm({ onPreview }: OrderFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="rounded-md bg-red-50 p-3">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className={`rounded-md p-3 ${theme === 'dark' ? 'bg-red-900/30' : 'bg-red-50'}`}>
+          <p className={`text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-700'}`}>{error}</p>
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Broker</label>
+        <label className={labelClass}>Broker</label>
         <Select value={brokerId} onValueChange={setBrokerId}>
           {brokers.map((broker) => (
             <SelectItem key={broker.id} value={broker.broker_id}>
@@ -101,7 +105,7 @@ export function OrderForm({ onPreview }: OrderFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Symbol</label>
+        <label className={labelClass}>Symbol</label>
         <TextInput
           value={symbol}
           onValueChange={setSymbol}
@@ -112,14 +116,14 @@ export function OrderForm({ onPreview }: OrderFormProps) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Side</label>
+          <label className={labelClass}>Side</label>
           <Select value={side} onValueChange={(v) => setSide(v as 'buy' | 'sell')}>
             <SelectItem value="buy">Buy</SelectItem>
             <SelectItem value="sell">Sell</SelectItem>
           </Select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+          <label className={labelClass}>Type</label>
           <Select value={orderType} onValueChange={(v) => setOrderType(v as 'market' | 'limit')}>
             <SelectItem value="market">Market</SelectItem>
             <SelectItem value="limit">Limit</SelectItem>
@@ -128,7 +132,7 @@ export function OrderForm({ onPreview }: OrderFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+        <label className={labelClass}>Quantity</label>
         <NumberInput
           value={quantity}
           onValueChange={(v) => setQuantity(v || 0)}
@@ -139,7 +143,7 @@ export function OrderForm({ onPreview }: OrderFormProps) {
 
       {orderType === 'limit' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Limit Price</label>
+          <label className={labelClass}>Limit Price</label>
           <NumberInput
             value={limitPrice}
             onValueChange={setLimitPrice}

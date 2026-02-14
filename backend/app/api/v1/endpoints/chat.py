@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.core.cache import get_cache, CacheService
 from app.services.conversation import ConversationService
 from app.services.portfolio import PortfolioService
+from app.services.strategy import StrategyService
 from app.schemas.chat import (
     ConversationCreate,
     ConversationResponse,
@@ -155,11 +156,31 @@ async def send_message(
         except Exception:
             portfolio_context = None
 
+        # Get active strategy context
+        strategy_name = None
+        strategy_context = None
+        try:
+            strategy_service = StrategyService(db, cache)
+            strategies = await strategy_service.list_strategies(current_user.id, active_only=True)
+            if strategies:
+                active_strategy = strategies[0]
+                strategy_name = active_strategy.name
+                custom_text = active_strategy.config.get("custom_text", "") if active_strategy.config else ""
+                strategy_context = f"Active Strategy: {active_strategy.name}"
+                if active_strategy.description:
+                    strategy_context += f"\nDescription: {active_strategy.description}"
+                if custom_text:
+                    strategy_context += f"\nCustom Instructions: {custom_text}"
+        except Exception:
+            pass
+
         conversation, user_msg, assistant_msg = await service.chat(
             user_id=current_user.id,
             message=request.message,
             conversation_id=request.conversation_id,
             portfolio_context=portfolio_context,
+            strategy_name=strategy_name,
+            strategy_context=strategy_context,
         )
 
         return ChatResponse(
@@ -188,4 +209,11 @@ async def send_message(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Chat error: {type(e).__name__}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"AI service error: {type(e).__name__}. Please try again.",
         )

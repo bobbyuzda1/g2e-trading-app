@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, Table, TableHead, TableHeaderCell, TableBody, TableRow, TableCell, Text, Badge } from '@tremor/react';
 import { tradingApi } from '../lib/api';
+import { useTheme } from '../contexts/ThemeContext';
 import type { Order } from '../types';
 
 interface OrderHistoryProps {
@@ -8,6 +9,7 @@ interface OrderHistoryProps {
 }
 
 export function OrderHistory({ filter }: OrderHistoryProps) {
+  const { theme } = useTheme();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -19,9 +21,9 @@ export function OrderHistory({ filter }: OrderHistoryProps) {
     try {
       setIsLoading(true);
       const response = await tradingApi.getOrders();
-      let data = response.data;
+      let data = Array.isArray(response.data) ? response.data : [];
       if (filter === 'open') {
-        data = data.filter((o: Order) => ['pending', 'open', 'partially_filled'].includes(o.status));
+        data = data.filter((o: Order) => ['pending', 'open', 'partially_filled', 'new', 'accepted'].includes(o.status));
       }
       setOrders(data);
     } catch (error) {
@@ -32,7 +34,7 @@ export function OrderHistory({ filter }: OrderHistoryProps) {
   };
 
   const formatCurrency = (value: number | undefined) => {
-    if (value === undefined) return '-';
+    if (value === undefined || value === null) return '-';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -43,7 +45,7 @@ export function OrderHistory({ filter }: OrderHistoryProps) {
     switch (status) {
       case 'filled': return 'green';
       case 'partially_filled': return 'yellow';
-      case 'cancelled': return 'gray';
+      case 'cancelled': case 'canceled': return 'gray';
       case 'rejected': return 'red';
       default: return 'blue';
     }
@@ -51,7 +53,7 @@ export function OrderHistory({ filter }: OrderHistoryProps) {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className={theme === 'dark' ? 'bg-[#161b22]' : ''}>
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
@@ -61,8 +63,8 @@ export function OrderHistory({ filter }: OrderHistoryProps) {
 
   if (orders.length === 0) {
     return (
-      <Card>
-        <Text className="text-center py-8 text-gray-500">
+      <Card className={theme === 'dark' ? 'bg-[#161b22]' : ''}>
+        <Text className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
           {filter === 'open' ? 'No open orders' : 'No order history'}
         </Text>
       </Card>
@@ -70,7 +72,7 @@ export function OrderHistory({ filter }: OrderHistoryProps) {
   }
 
   return (
-    <Card>
+    <Card className={theme === 'dark' ? 'bg-[#161b22]' : ''}>
       <Table>
         <TableHead>
           <TableRow>
@@ -85,9 +87,9 @@ export function OrderHistory({ filter }: OrderHistoryProps) {
         </TableHead>
         <TableBody>
           {orders.map((order) => (
-            <TableRow key={order.id}>
+            <TableRow key={order.order_id || `${order.symbol}-${order.submitted_at}`}>
               <TableCell>
-                <Text className="font-semibold">{order.symbol}</Text>
+                <Text className={`font-semibold ${theme === 'dark' ? 'text-white' : ''}`}>{order.symbol}</Text>
               </TableCell>
               <TableCell>
                 <Badge color={order.side === 'buy' ? 'green' : 'red'}>
@@ -95,13 +97,13 @@ export function OrderHistory({ filter }: OrderHistoryProps) {
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                <Text>{order.quantity}</Text>
+                <Text className={theme === 'dark' ? 'text-gray-300' : ''}>{order.quantity}</Text>
               </TableCell>
               <TableCell className="text-right">
-                <Text>{order.filled_quantity}</Text>
+                <Text className={theme === 'dark' ? 'text-gray-300' : ''}>{order.filled_quantity}</Text>
               </TableCell>
               <TableCell className="text-right">
-                <Text>{formatCurrency(order.average_fill_price || order.limit_price)}</Text>
+                <Text className={theme === 'dark' ? 'text-gray-300' : ''}>{formatCurrency(order.average_fill_price || order.limit_price)}</Text>
               </TableCell>
               <TableCell>
                 <Badge color={getStatusColor(order.status)}>
@@ -109,8 +111,8 @@ export function OrderHistory({ filter }: OrderHistoryProps) {
                 </Badge>
               </TableCell>
               <TableCell>
-                <Text className="text-sm text-gray-500">
-                  {new Date(order.created_at).toLocaleString()}
+                <Text className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {order.submitted_at ? new Date(order.submitted_at).toLocaleString() : '-'}
                 </Text>
               </TableCell>
             </TableRow>
