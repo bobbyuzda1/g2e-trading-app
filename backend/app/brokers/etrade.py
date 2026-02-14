@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from urllib.parse import urlencode, parse_qs
 import httpx
-from authlib.integrations.httpx_client import OAuth1Client
+from authlib.integrations.httpx_client import AsyncOAuth1Client
 
 from app.config import get_settings
 from app.models.brokerage import BrokerId
@@ -80,7 +80,7 @@ class ETradeAdapter(IBrokerAdapter):
 
     async def get_request_token(self, redirect_uri: str | None = None) -> tuple[str, str]:
         """Get OAuth 1.0a request token (step 1 of 3-legged OAuth)."""
-        client = OAuth1Client(
+        client = AsyncOAuth1Client(
             client_id=self._consumer_key,
             client_secret=self._consumer_secret,
             redirect_uri=redirect_uri,
@@ -142,7 +142,7 @@ class ETradeAdapter(IBrokerAdapter):
         if not all([oauth_token, oauth_verifier, oauth_token_secret]):
             raise ValueError("Missing OAuth callback parameters")
 
-        client = OAuth1Client(
+        client = AsyncOAuth1Client(
             client_id=self._consumer_key,
             client_secret=self._consumer_secret,
             token=oauth_token,
@@ -168,7 +168,7 @@ class ETradeAdapter(IBrokerAdapter):
 
         access_token, access_token_secret = parts
 
-        client = OAuth1Client(
+        client = AsyncOAuth1Client(
             client_id=self._consumer_key,
             client_secret=self._consumer_secret,
             token=access_token,
@@ -190,10 +190,10 @@ class ETradeAdapter(IBrokerAdapter):
             refresh_token=refresh_token,
         )
 
-    def _get_oauth_client(self, tokens: TokenSet) -> OAuth1Client:
+    def _get_oauth_client(self, tokens: TokenSet) -> AsyncOAuth1Client:
         """Create OAuth1 client with tokens."""
         if isinstance(tokens, ETradeTokenSet):
-            return OAuth1Client(
+            return AsyncOAuth1Client(
                 client_id=self._consumer_key,
                 client_secret=self._consumer_secret,
                 token=tokens.access_token,
