@@ -53,6 +53,13 @@ Update the "Last Updated" date and add entries to the Changelog section at the b
 | `frontend/src/contexts/` | React contexts (Auth, Theme) |
 | `frontend/src/lib/` | API client |
 
+## Git Branch Workflow
+
+- **Working branch:** Always use `cli-comp` for Claude Code desktop session changes. Create it from `main`, push, open PR, merge to `main`.
+- **Do NOT** create new branch names for each change. Reuse `cli-comp` every time.
+- **Protected branch:** `render-logs-integration-RYGq4` is used by Claude Code mobile app. Never delete it.
+- **Cleanup:** After merging a PR, delete the remote `cli-comp` branch (GitHub does this automatically if "delete branch on merge" is enabled). Recreate it fresh from `main` for the next set of changes.
+
 ## Deployment
 
 ### Backend (Automatic)
