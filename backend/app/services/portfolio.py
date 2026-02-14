@@ -58,7 +58,7 @@ class PortfolioService:
 
         for connection in active_connections:
             try:
-                adapter = self._brokerage_service.get_adapter(connection.broker_id)
+                adapter = await self._brokerage_service.get_adapter(connection.broker_id, user_id)
                 tokens = await self._brokerage_service.get_token_set(connection)
 
                 # Get accounts for this connection
@@ -135,7 +135,7 @@ class PortfolioService:
 
         for connection in active_connections:
             try:
-                adapter = self._brokerage_service.get_adapter(connection.broker_id)
+                adapter = await self._brokerage_service.get_adapter(connection.broker_id, user_id)
                 tokens = await self._brokerage_service.get_token_set(connection)
                 accounts = await adapter.get_accounts(tokens)
 
@@ -156,7 +156,7 @@ class PortfolioService:
 
         for connection in active_connections:
             try:
-                adapter = self._brokerage_service.get_adapter(connection.broker_id)
+                adapter = await self._brokerage_service.get_adapter(connection.broker_id, user_id)
                 tokens = await self._brokerage_service.get_token_set(connection)
                 accounts = await adapter.get_accounts(tokens)
 
@@ -178,7 +178,7 @@ class PortfolioService:
 
         # Use first active connection for quotes
         connection = active_connections[0]
-        adapter = self._brokerage_service.get_adapter(connection.broker_id)
+        adapter = await self._brokerage_service.get_adapter(connection.broker_id, user_id)
         tokens = await self._brokerage_service.get_token_set(connection)
 
         return await adapter.get_quotes(symbols, tokens)

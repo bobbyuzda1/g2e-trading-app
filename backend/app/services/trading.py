@@ -57,7 +57,7 @@ class TradingService:
         self,
         user_id: UUID,
         broker_id: BrokerId,
-        account_id: str,
+        account_id: str | None,
         symbol: str,
         side: OrderSide,
         quantity: Decimal,
@@ -92,8 +92,31 @@ class TradingService:
                 can_execute=False,
             )
 
-        adapter = self._brokerage_service.get_adapter(broker_id)
+        adapter = await self._brokerage_service.get_adapter(broker_id, user_id)
         tokens = await self._brokerage_service.get_token_set(connection)
+
+        # Auto-select first account if not specified
+        if not account_id:
+            try:
+                accounts = await adapter.get_accounts(tokens)
+                if accounts:
+                    account_id = accounts[0].account_id
+                else:
+                    return OrderPreview(
+                        symbol=symbol, side=side, quantity=quantity, order_type=order_type,
+                        estimated_cost=Decimal("0"), estimated_price=Decimal("0"),
+                        buying_power_impact=Decimal("0"), buying_power_after=Decimal("0"),
+                        position_after=Decimal("0"), risk_assessment={"error": "No accounts found"},
+                        warnings=["No accounts found for this broker"], can_execute=False,
+                    )
+            except Exception as e:
+                return OrderPreview(
+                    symbol=symbol, side=side, quantity=quantity, order_type=order_type,
+                    estimated_cost=Decimal("0"), estimated_price=Decimal("0"),
+                    buying_power_impact=Decimal("0"), buying_power_after=Decimal("0"),
+                    position_after=Decimal("0"), risk_assessment={"error": str(e)},
+                    warnings=[f"Could not fetch accounts: {str(e)}"], can_execute=False,
+                )
 
         # Get current quote
         try:
@@ -197,7 +220,7 @@ class TradingService:
         self,
         user_id: UUID,
         broker_id: BrokerId,
-        account_id: str,
+        account_id: str | None,
         order_request: OrderRequest,
     ) -> OrderResult:
         """Place an order."""
@@ -211,8 +234,15 @@ class TradingService:
         if not connection:
             return OrderResult(success=False, message="No active connection for this broker")
 
-        adapter = self._brokerage_service.get_adapter(broker_id)
+        adapter = await self._brokerage_service.get_adapter(broker_id, user_id)
         tokens = await self._brokerage_service.get_token_set(connection)
+
+        # Auto-select first account if not specified
+        if not account_id:
+            accounts = await adapter.get_accounts(tokens)
+            if not accounts:
+                return OrderResult(success=False, message="No accounts found for this broker")
+            account_id = accounts[0].account_id
 
         return await adapter.place_order(account_id, order_request, tokens)
 
@@ -233,7 +263,7 @@ class TradingService:
         if not connection:
             return OrderResult(success=False, message="No active connection for this broker")
 
-        adapter = self._brokerage_service.get_adapter(broker_id)
+        adapter = await self._brokerage_service.get_adapter(broker_id, user_id)
         tokens = await self._brokerage_service.get_token_set(connection)
 
         return await adapter.cancel_order(account_id, order_id, tokens)
@@ -255,7 +285,7 @@ class TradingService:
 
         for connection in active_connections:
             try:
-                adapter = self._brokerage_service.get_adapter(connection.broker_id)
+                adapter = await self._brokerage_service.get_adapter(connection.broker_id, user_id)
                 tokens = await self._brokerage_service.get_token_set(connection)
                 accounts = await adapter.get_accounts(tokens)
 

@@ -10,7 +10,7 @@ from app.brokers.models import OrderSide, OrderType, TimeInForce, OrderStatus
 class OrderPreviewRequest(BaseSchema):
     """Order preview request."""
     broker_id: str
-    account_id: str
+    account_id: str | None = None  # Auto-selects first account if not provided
     symbol: str
     side: OrderSide
     quantity: Decimal = Field(gt=0)
@@ -38,7 +38,7 @@ class OrderPreviewResponse(BaseSchema):
 class PlaceOrderRequest(BaseSchema):
     """Place order request."""
     broker_id: str
-    account_id: str
+    account_id: str | None = None  # Auto-selects first account if not provided
     symbol: str
     side: OrderSide
     quantity: Decimal = Field(gt=0)
