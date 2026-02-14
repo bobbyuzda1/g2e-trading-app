@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -7,6 +8,7 @@ interface ChatInputProps {
 }
 
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
+  const { theme } = useTheme();
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -43,7 +45,11 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
           placeholder="Ask about trading strategies, stocks, or your portfolio..."
           disabled={disabled}
           rows={1}
-          className="w-full resize-none rounded-lg border border-gray-300 px-4 py-2 pr-12 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className={`w-full resize-none rounded-lg border px-4 py-2 pr-12 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
+            theme === 'dark'
+              ? 'bg-slate-800 border-slate-600 text-white placeholder-gray-400 disabled:bg-slate-900 disabled:cursor-not-allowed'
+              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed'
+          }`}
         />
       </div>
       <button

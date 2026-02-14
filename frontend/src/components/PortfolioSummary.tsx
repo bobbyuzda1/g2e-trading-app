@@ -1,4 +1,5 @@
 import { Card, Metric, Text, Flex, BadgeDelta, Grid } from '@tremor/react';
+import { useTheme } from '../contexts/ThemeContext';
 import type { PortfolioSummary as PortfolioSummaryType } from '../types';
 
 interface PortfolioSummaryProps {
@@ -6,6 +7,8 @@ interface PortfolioSummaryProps {
 }
 
 export function PortfolioSummary({ summary }: PortfolioSummaryProps) {
+  const { theme } = useTheme();
+
   const formatCurrency = (value: number | string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -23,11 +26,11 @@ export function PortfolioSummary({ summary }: PortfolioSummaryProps) {
 
   return (
     <Grid numItemsSm={2} numItemsLg={4} className="gap-6">
-      <Card decoration="top" decorationColor="blue">
-        <Text>Total Portfolio Value</Text>
-        <Metric>{formatCurrency(summary.total_value)}</Metric>
+      <Card decoration="top" decorationColor="blue" className={theme === 'dark' ? 'bg-[#161b22]' : ''}>
+        <Text className={theme === 'dark' ? 'text-gray-400' : ''}>Total Portfolio Value</Text>
+        <Metric className={theme === 'dark' ? 'text-white' : ''}>{formatCurrency(summary.total_value)}</Metric>
         <Flex className="mt-4">
-          <Text>Unrealized P/L</Text>
+          <Text className={theme === 'dark' ? 'text-gray-400' : ''}>Unrealized P/L</Text>
           <BadgeDelta
             deltaType={pl >= 0 ? 'increase' : 'decrease'}
           >
@@ -36,25 +39,25 @@ export function PortfolioSummary({ summary }: PortfolioSummaryProps) {
         </Flex>
       </Card>
 
-      <Card decoration="top" decorationColor="green">
-        <Text>Cash Balance</Text>
-        <Metric>{formatCurrency(summary.total_cash)}</Metric>
+      <Card decoration="top" decorationColor="green" className={theme === 'dark' ? 'bg-[#161b22]' : ''}>
+        <Text className={theme === 'dark' ? 'text-gray-400' : ''}>Cash Balance</Text>
+        <Metric className={theme === 'dark' ? 'text-white' : ''}>{formatCurrency(summary.total_cash)}</Metric>
         <Flex className="mt-4">
-          <Text>Available for trading</Text>
+          <Text className={theme === 'dark' ? 'text-gray-400' : ''}>Available for trading</Text>
         </Flex>
       </Card>
 
-      <Card decoration="top" decorationColor="indigo">
-        <Text>Buying Power</Text>
-        <Metric>{formatCurrency(summary.total_buying_power)}</Metric>
+      <Card decoration="top" decorationColor="indigo" className={theme === 'dark' ? 'bg-[#161b22]' : ''}>
+        <Text className={theme === 'dark' ? 'text-gray-400' : ''}>Buying Power</Text>
+        <Metric className={theme === 'dark' ? 'text-white' : ''}>{formatCurrency(summary.total_buying_power)}</Metric>
         <Flex className="mt-4">
-          <Text>{Number(summary.total_positions) || 0} positions</Text>
+          <Text className={theme === 'dark' ? 'text-gray-400' : ''}>{Number(summary.total_positions) || 0} positions</Text>
         </Flex>
       </Card>
 
-      <Card decoration="top" decorationColor={pl >= 0 ? 'emerald' : 'red'}>
-        <Text>Unrealized P/L</Text>
-        <Metric className={pl >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+      <Card decoration="top" decorationColor={pl >= 0 ? 'emerald' : 'red'} className={theme === 'dark' ? 'bg-[#161b22]' : ''}>
+        <Text className={theme === 'dark' ? 'text-gray-400' : ''}>Unrealized P/L</Text>
+        <Metric className={pl >= 0 ? 'text-emerald-500' : 'text-red-500'}>
           {formatCurrency(summary.total_unrealized_pl)}
         </Metric>
         <Flex className="mt-4">

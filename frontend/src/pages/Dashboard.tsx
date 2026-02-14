@@ -3,9 +3,9 @@ import type { ReactNode } from 'react';
 import { Title, Text, Grid, Card, Metric, Flex, BadgeDelta, ProgressBar } from '@tremor/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { portfolioApi, chatApi, feedbackApi, brokerageApi } from '../lib/api';
 import { QuickStats } from '../components/QuickStats';
-import { RecentActivity } from '../components/RecentActivity';
 import type { PortfolioSummary, Conversation, BrokerConnection } from '../types';
 
 // Error boundary to prevent white screen crashes
@@ -50,6 +50,7 @@ class DashboardErrorBoundary extends Component<
 
 function DashboardContent() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [brokers, setBrokers] = useState<BrokerConnection[]>([]);
@@ -125,10 +126,10 @@ function DashboardContent() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <Title>
+        <Title className={theme === 'dark' ? 'text-white' : ''}>
           {getGreeting()}, {user?.full_name?.split(' ')[0] || 'Trader'}
         </Title>
-        <Text>Here's your trading overview.</Text>
+        <Text className={theme === 'dark' ? 'text-gray-400' : ''}>Here's your trading overview.</Text>
       </div>
 
       {/* No Broker Connected State */}
@@ -155,19 +156,19 @@ function DashboardContent() {
           {/* Main Grid */}
           <Grid numItemsSm={1} numItemsLg={2} className="gap-6">
             {/* Portfolio Quick View */}
-            <Card>
+            <Card className={theme === 'dark' ? 'bg-[#161b22]' : ''}>
               <Flex>
-                <Title className="text-lg">Portfolio</Title>
-                <Link to="/portfolio" className="text-primary-600 text-sm hover:underline">
+                <Title className={`text-lg ${theme === 'dark' ? 'text-white' : ''}`}>Portfolio</Title>
+                <Link to="/portfolio" className="text-primary-500 text-sm hover:underline">
                   View all →
                 </Link>
               </Flex>
 
               {portfolio ? (
                 <div className="mt-4">
-                  <Metric>{formatCurrency(totalValue)}</Metric>
+                  <Metric className={theme === 'dark' ? 'text-white' : ''}>{formatCurrency(totalValue)}</Metric>
                   <Flex className="mt-2">
-                    <Text>Unrealized P/L</Text>
+                    <Text className={theme === 'dark' ? 'text-gray-400' : ''}>Unrealized P/L</Text>
                     <BadgeDelta
                       deltaType={plValue >= 0 ? 'increase' : 'decrease'}
                     >
@@ -177,8 +178,8 @@ function DashboardContent() {
 
                   <div className="mt-4">
                     <Flex>
-                      <Text>Cash</Text>
-                      <Text>{formatCurrency(totalCash)}</Text>
+                      <Text className={theme === 'dark' ? 'text-gray-400' : ''}>Cash</Text>
+                      <Text className={theme === 'dark' ? 'text-gray-300' : ''}>{formatCurrency(totalCash)}</Text>
                     </Flex>
                     <ProgressBar
                       value={totalValue > 0 ? (totalCash / totalValue) * 100 : 0}
@@ -188,15 +189,15 @@ function DashboardContent() {
                   </div>
                 </div>
               ) : (
-                <Text className="mt-4 text-gray-500">No portfolio data available</Text>
+                <Text className={`mt-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>No portfolio data available</Text>
               )}
             </Card>
 
             {/* Recent AI Conversations */}
-            <Card>
+            <Card className={theme === 'dark' ? 'bg-[#161b22]' : ''}>
               <Flex>
-                <Title className="text-lg">AI Assistant</Title>
-                <Link to="/chat" className="text-primary-600 text-sm hover:underline">
+                <Title className={`text-lg ${theme === 'dark' ? 'text-white' : ''}`}>AI Assistant</Title>
+                <Link to="/chat" className="text-primary-500 text-sm hover:underline">
                   Open chat →
                 </Link>
               </Flex>
@@ -207,12 +208,16 @@ function DashboardContent() {
                     <Link
                       key={conv.id}
                       to="/chat"
-                      className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className={`block p-3 rounded-lg transition-colors ${
+                        theme === 'dark'
+                          ? 'bg-slate-800 hover:bg-slate-700'
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      }`}
                     >
-                      <Text className="font-medium truncate">
+                      <Text className={`font-medium truncate ${theme === 'dark' ? 'text-gray-200' : ''}`}>
                         {conv.title || 'New conversation'}
                       </Text>
-                      <Text className="text-xs text-gray-500">
+                      <Text className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                         {new Date(conv.updated_at).toLocaleDateString()}
                       </Text>
                     </Link>
@@ -220,10 +225,10 @@ function DashboardContent() {
                 </div>
               ) : (
                 <div className="mt-4 text-center py-6">
-                  <Text className="text-gray-500">No conversations yet</Text>
+                  <Text className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>No conversations yet</Text>
                   <Link
                     to="/chat"
-                    className="mt-2 inline-block text-primary-600 hover:underline text-sm"
+                    className="mt-2 inline-block text-primary-500 hover:underline text-sm"
                   >
                     Start a conversation →
                   </Link>
@@ -231,9 +236,6 @@ function DashboardContent() {
               )}
             </Card>
           </Grid>
-
-          {/* Recent Activity */}
-          <RecentActivity />
         </>
       )}
     </div>

@@ -59,6 +59,7 @@ export const portfolioApi = {
   getSummary: () => api.get('/portfolio/summary'),
   getPositions: () => api.get('/portfolio/positions'),
   getHistory: (days?: number) => api.get('/portfolio/history', { params: { days } }),
+  getQuotes: (symbols: string) => api.get('/portfolio/quotes', { params: { symbols } }),
 };
 
 // Trading API
@@ -86,18 +87,24 @@ export const tradingApi = {
 // Chat API
 export const chatApi = {
   getConversations: () => api.get('/chat/conversations'),
-  createConversation: () => api.post('/chat/conversations'),
-  getMessages: (conversationId: string) =>
-    api.get(`/chat/conversations/${conversationId}/messages`),
-  sendMessage: (conversationId: string, content: string) =>
-    api.post(`/chat/conversations/${conversationId}/messages`, { content }),
+  createConversation: (title?: string) =>
+    api.post('/chat/conversations', { title }),
+  getConversation: (conversationId: string) =>
+    api.get(`/chat/conversations/${conversationId}`),
+  sendMessage: (message: string, conversationId?: string) =>
+    api.post('/chat/send', { message, conversation_id: conversationId }),
 };
 
 // Strategy API
 export const strategyApi = {
-  getStrategies: () => api.get('/strategy'),
-  analyzeSymbol: (symbol: string, strategy?: string) =>
-    api.get(`/strategy/analyze/${symbol}`, { params: { strategy } }),
+  getTemplates: () => api.get('/strategies/templates'),
+  getStrategies: () => api.get('/strategies'),
+};
+
+// User API
+export const userApi = {
+  updateProfile: (data: { full_name?: string; email?: string }) =>
+    api.put('/users/me', data),
 };
 
 // Brokerage API

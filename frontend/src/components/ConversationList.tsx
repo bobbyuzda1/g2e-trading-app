@@ -1,5 +1,6 @@
 import { Card, Text } from '@tremor/react';
 import { PlusIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../contexts/ThemeContext';
 import type { Conversation } from '../types';
 
 interface ConversationListProps {
@@ -15,6 +16,8 @@ export function ConversationList({
   onSelect,
   onNewChat,
 }: ConversationListProps) {
+  const { theme } = useTheme();
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();
@@ -34,8 +37,12 @@ export function ConversationList({
   };
 
   return (
-    <Card className="h-full flex flex-col">
-      <div className="flex-shrink-0 pb-4 border-b border-gray-200">
+    <Card className={`h-full flex flex-col ${
+      theme === 'dark' ? 'bg-[#161b22] ring-slate-700' : ''
+    }`}>
+      <div className={`flex-shrink-0 pb-4 border-b ${
+        theme === 'dark' ? 'border-slate-700' : 'border-gray-200'
+      }`}>
         <button
           onClick={onNewChat}
           className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -48,8 +55,8 @@ export function ConversationList({
       <div className="flex-1 overflow-y-auto mt-4">
         {conversations.length === 0 ? (
           <div className="text-center py-8">
-            <ChatBubbleLeftIcon className="mx-auto h-8 w-8 text-gray-400" />
-            <Text className="mt-2 text-gray-500 text-sm">No conversations yet</Text>
+            <ChatBubbleLeftIcon className={`mx-auto h-8 w-8 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
+            <Text className={`mt-2 text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No conversations yet</Text>
           </div>
         ) : (
           <div className="space-y-2">
@@ -59,14 +66,22 @@ export function ConversationList({
                 onClick={() => onSelect(conversation.id)}
                 className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                   activeId === conversation.id
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'hover:bg-gray-50 text-gray-700'
+                    ? theme === 'dark'
+                      ? 'bg-slate-700 text-primary-400'
+                      : 'bg-primary-50 text-primary-700'
+                    : theme === 'dark'
+                      ? 'hover:bg-slate-800 text-gray-300'
+                      : 'hover:bg-gray-50 text-gray-700'
                 }`}
               >
-                <Text className="font-medium truncate text-sm">
+                <Text className={`font-medium truncate text-sm ${
+                  activeId === conversation.id
+                    ? theme === 'dark' ? 'text-primary-400' : 'text-primary-700'
+                    : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   {conversation.title || 'New conversation'}
                 </Text>
-                <Text className="text-xs text-gray-500">
+                <Text className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                   {formatDate(conversation.updated_at)}
                 </Text>
               </button>
