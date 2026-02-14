@@ -25,9 +25,10 @@ export function OrderForm({ onPreview }: OrderFormProps) {
   const loadBrokers = async () => {
     try {
       const response = await brokerageApi.getConnections();
-      setBrokers(response.data);
-      if (response.data.length > 0) {
-        setBrokerId(response.data[0].id);
+      const active = response.data.filter((b: BrokerConnection) => b.status === 'active');
+      setBrokers(active);
+      if (active.length > 0) {
+        setBrokerId(active[0].broker_id);
       }
     } catch (err) {
       console.error('Failed to load brokers:', err);
@@ -55,8 +56,12 @@ export function OrderForm({ onPreview }: OrderFormProps) {
       });
       onPreview(response.data);
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { detail?: string } } };
-      setError(error.response?.data?.detail || 'Failed to preview order');
+      const error = err as { response?: { data?: { detail?: unknown } } };
+      const detail = error.response?.data?.detail;
+      const message = typeof detail === 'string' ? detail
+        : Array.isArray(detail) ? detail.map((d: { msg?: string }) => d.msg || '').join(', ')
+        : 'Failed to preview order';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +93,7 @@ export function OrderForm({ onPreview }: OrderFormProps) {
         <label className="block text-sm font-medium text-gray-700 mb-1">Broker</label>
         <Select value={brokerId} onValueChange={setBrokerId}>
           {brokers.map((broker) => (
-            <SelectItem key={broker.id} value={broker.id}>
+            <SelectItem key={broker.id} value={broker.broker_id}>
               {broker.broker_id}
             </SelectItem>
           ))}
