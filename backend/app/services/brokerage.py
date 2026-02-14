@@ -16,6 +16,10 @@ from app.config import get_settings
 
 settings = get_settings()
 
+# Module-level store for OAuth state when Redis is unavailable.
+# Shared across all BrokerageService instances within the same process.
+_oauth_states: dict[str, dict] = {}
+
 
 class BrokerageService:
     """Service for managing brokerage connections."""
@@ -24,8 +28,6 @@ class BrokerageService:
         self.db = db
         self.cache = cache
         self._adapters: dict[str, IBrokerAdapter] = {}
-        # In-memory store for OAuth state (in production, use Redis/DB)
-        self._oauth_states: dict[str, dict] = {}
 
     async def get_adapter(self, broker_id: BrokerId, user_id: UUID | None = None) -> IBrokerAdapter:
         """Get or create broker adapter using per-user credentials."""
@@ -101,7 +103,7 @@ class BrokerageService:
                 ttl=600,  # 10 minutes
             )
         if not cache_ok:
-            self._oauth_states[state] = state_data
+            _oauth_states[state] = state_data
 
         # Clean up any stale pending connections for this user/broker
         await self.db.execute(
@@ -149,7 +151,7 @@ class BrokerageService:
         if self.cache:
             state_data = await self.cache.get(f"oauth_state:{state}")
         if not state_data:
-            state_data = self._oauth_states.get(state)
+            state_data = _oauth_states.get(state)
 
         if not state_data:
             raise ValueError("Invalid or expired state parameter")
@@ -210,8 +212,8 @@ class BrokerageService:
         # Clean up state
         if self.cache:
             await self.cache.delete(f"oauth_state:{state}")
-        elif state in self._oauth_states:
-            del self._oauth_states[state]
+        elif state in _oauth_states:
+            del _oauth_states[state]
 
         await self.db.commit()
         await self.db.refresh(connection)
