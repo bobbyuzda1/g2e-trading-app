@@ -8,7 +8,11 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export function Header() {
+interface HeaderProps {
+  onOpenMobileMenu?: () => void;
+}
+
+export function Header({ onOpenMobileMenu }: HeaderProps) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -26,6 +30,7 @@ export function Header() {
           "-m-2.5 p-2.5 lg:hidden",
           theme === 'dark' ? "text-gray-300" : "text-gray-700"
         )}
+        onClick={onOpenMobileMenu}
         aria-label="Open sidebar"
       >
         <Bars3Icon className="h-6 w-6" aria-hidden="true" />
