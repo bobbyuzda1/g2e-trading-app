@@ -83,6 +83,31 @@ export function Chat() {
     }
   };
 
+  const renameConversation = async (id: string, title: string) => {
+    try {
+      await chatApi.renameConversation(id, title);
+      setConversations((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, title } : c))
+      );
+    } catch (error) {
+      console.error('Failed to rename conversation:', error);
+    }
+  };
+
+  const deleteConversation = async (id: string) => {
+    try {
+      await chatApi.deleteConversation(id);
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (activeConversation === id) {
+        const remaining = conversations.filter((c) => c.id !== id);
+        setActiveConversation(remaining.length > 0 ? remaining[0].id : null);
+        if (remaining.length === 0) setMessages([]);
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+    }
+  };
+
   const sendMessage = async (content: string) => {
     if (!content.trim()) return;
 
@@ -107,9 +132,10 @@ export function Chat() {
       // If we didn't have a conversation, set it now
       if (!activeConversation) {
         setActiveConversation(conversation_id);
-        // Reload conversation list to show the new one
-        loadConversations();
       }
+
+      // Reload conversation list to pick up AI-generated title
+      loadConversations();
 
       // Replace temp message and add AI response
       setMessages((prev) => {
@@ -146,6 +172,8 @@ export function Chat() {
             activeId={activeConversation}
             onSelect={setActiveConversation}
             onNewChat={createNewConversation}
+            onRename={renameConversation}
+            onDelete={deleteConversation}
           />
         </div>
 
