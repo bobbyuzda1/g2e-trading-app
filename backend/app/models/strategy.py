@@ -29,7 +29,7 @@ class TradingStrategy(Base, UUIDMixin, TimestampMixin, SoftDeleteMixin):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     source: Mapped[StrategySource] = mapped_column(
-        SQLEnum(StrategySource),
+        SQLEnum(StrategySource, values_callable=lambda x: [e.value for e in x]),
         default=StrategySource.MANUAL,
         nullable=False,
     )

@@ -51,7 +51,10 @@ class AuditLog(Base, UUIDMixin, TimestampMixin):
         nullable=True,  # Allow null for system actions
     )
 
-    action: Mapped[AuditAction] = mapped_column(SQLEnum(AuditAction), nullable=False)
+    action: Mapped[AuditAction] = mapped_column(
+        SQLEnum(AuditAction, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+    )
     resource_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
     resource_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
