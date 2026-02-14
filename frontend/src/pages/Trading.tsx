@@ -3,39 +3,44 @@ import { Card, Title, Text, TabGroup, TabList, Tab, TabPanels, TabPanel } from '
 import { OrderForm } from '../components/OrderForm';
 import { OrderPreview } from '../components/OrderPreview';
 import { OrderHistory } from '../components/OrderHistory';
+import { useTheme } from '../contexts/ThemeContext';
 import type { OrderPreview as OrderPreviewType } from '../types';
 
-export function Trading() {
-  const [preview, setPreview] = useState<OrderPreviewType | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
+interface PreviewState {
+  preview: OrderPreviewType;
+  brokerId: string;
+  orderType: string;
+  limitPrice?: number;
+}
 
-  const handlePreview = (orderPreview: OrderPreviewType) => {
-    setPreview(orderPreview);
-    setShowPreview(true);
+export function Trading() {
+  const { theme } = useTheme();
+  const [previewState, setPreviewState] = useState<PreviewState | null>(null);
+
+  const handlePreview = (preview: OrderPreviewType, brokerId: string, orderType: string, limitPrice?: number) => {
+    setPreviewState({ preview, brokerId, orderType, limitPrice });
   };
 
   const handleClosePreview = () => {
-    setShowPreview(false);
-    setPreview(null);
+    setPreviewState(null);
   };
 
   const handleOrderSubmitted = () => {
-    setShowPreview(false);
-    setPreview(null);
+    setPreviewState(null);
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <Title>Trading</Title>
-        <Text>Place orders and view your trading history.</Text>
+        <Title className={theme === 'dark' ? 'text-white' : ''}>Trading</Title>
+        <Text className={theme === 'dark' ? 'text-gray-400' : ''}>Place orders and view your trading history.</Text>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Order Form */}
         <div className="lg:col-span-1">
-          <Card>
-            <Title className="text-lg mb-4">New Order</Title>
+          <Card className={theme === 'dark' ? 'bg-[#161b22]' : ''}>
+            <Title className={`text-lg mb-4 ${theme === 'dark' ? 'text-white' : ''}`}>New Order</Title>
             <OrderForm onPreview={handlePreview} />
           </Card>
         </div>
@@ -64,9 +69,12 @@ export function Trading() {
       </div>
 
       {/* Order Preview Modal */}
-      {showPreview && preview && (
+      {previewState && (
         <OrderPreview
-          preview={preview}
+          preview={previewState.preview}
+          brokerId={previewState.brokerId}
+          orderType={previewState.orderType}
+          limitPrice={previewState.limitPrice}
           onClose={handleClosePreview}
           onSubmit={handleOrderSubmitted}
         />

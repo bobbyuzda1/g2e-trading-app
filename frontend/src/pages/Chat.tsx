@@ -16,6 +16,7 @@ export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -85,6 +86,8 @@ export function Chat() {
   const sendMessage = async (content: string) => {
     if (!content.trim()) return;
 
+    setError(null);
+
     // Add user message optimistically
     const userMessage: Message = {
       id: `temp-${Date.now()}`,
@@ -113,8 +116,11 @@ export function Chat() {
         const filtered = prev.filter((m) => !m.id.startsWith('temp-'));
         return [...filtered, userMsg, assistantMsg];
       });
-    } catch (error) {
-      console.error('Failed to send message:', error);
+    } catch (err: any) {
+      console.error('Failed to send message:', err);
+      const detail = err.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : 'Failed to get AI response. Please try again.';
+      setError(msg);
       // Remove optimistic message on error
       setMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
     } finally {
@@ -231,6 +237,18 @@ export function Chat() {
                 </>
               )}
             </div>
+
+            {/* Error */}
+            {error && (
+              <div className={`flex-shrink-0 px-4 py-2 ${
+                theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'
+              }`}>
+                <div className="flex items-center justify-between text-sm">
+                  <span>{error}</span>
+                  <button onClick={() => setError(null)} className="ml-2 font-medium hover:underline">Dismiss</button>
+                </div>
+              </div>
+            )}
 
             {/* Input */}
             <div className={`flex-shrink-0 border-t p-4 ${

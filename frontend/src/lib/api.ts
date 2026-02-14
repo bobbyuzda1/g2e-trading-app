@@ -79,9 +79,11 @@ export const tradingApi = {
     side: 'buy' | 'sell';
     order_type: 'market' | 'limit';
     limit_price?: number;
-  }) => api.post('/trading/order', data),
-  getOrders: () => api.get('/trading/orders'),
-  cancelOrder: (orderId: string) => api.delete(`/trading/orders/${orderId}`),
+  }) => api.post('/trading/orders', data),
+  getOrders: (brokerId?: string, status?: string) =>
+    api.get('/trading/orders', { params: { broker_id: brokerId, status } }),
+  cancelOrder: (data: { broker_id: string; account_id: string; order_id: string }) =>
+    api.delete('/trading/orders', { data }),
 };
 
 // Chat API
@@ -98,7 +100,26 @@ export const chatApi = {
 // Strategy API
 export const strategyApi = {
   getTemplates: () => api.get('/strategies/templates'),
-  getStrategies: () => api.get('/strategies'),
+  getStrategies: (activeOnly?: boolean) =>
+    api.get('/strategies', { params: { active_only: activeOnly } }),
+  getStrategy: (id: string) => api.get(`/strategies/${id}`),
+  createStrategy: (data: {
+    name: string;
+    description?: string;
+    source?: string;
+    config?: Record<string, unknown>;
+    focus_config?: Record<string, unknown>;
+  }) => api.post('/strategies', data),
+  updateStrategy: (id: string, data: {
+    name?: string;
+    description?: string;
+    config?: Record<string, unknown>;
+    focus_config?: Record<string, unknown>;
+    is_active?: boolean;
+  }) => api.put(`/strategies/${id}`, data),
+  deleteStrategy: (id: string) => api.delete(`/strategies/${id}`),
+  analyzeAlignment: (strategyId?: string) =>
+    api.post('/strategies/analyze', { strategy_id: strategyId }),
 };
 
 // User API

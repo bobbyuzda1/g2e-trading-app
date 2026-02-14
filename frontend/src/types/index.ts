@@ -41,30 +41,47 @@ export interface PortfolioSummary {
 // Trading types
 export interface OrderPreview {
   symbol: string;
-  side: 'buy' | 'sell';
+  side: string;
   quantity: number;
+  order_type: string;
+  estimated_cost: number;
   estimated_price: number;
-  estimated_total: number;
-  commission: number;
+  buying_power_impact: number;
+  buying_power_after: number;
+  position_after: number;
   risk_assessment: {
-    risk_level: string;
-    warnings: string[];
-    position_size_percent: number;
+    portfolio_concentration_percent: number;
+    is_concentrated: boolean;
+    position_size_dollars: number;
+    current_position_qty: number;
+    broker_supports_feature?: {
+      extended_hours: boolean;
+      fractional_shares: boolean;
+      short_selling: boolean;
+    };
+    error?: string;
   };
+  warnings: string[];
+  can_execute: boolean;
 }
 
 export interface Order {
-  id: string;
   broker_id: string;
+  account_id: string;
+  order_id: string;
+  client_order_id?: string;
   symbol: string;
-  side: 'buy' | 'sell';
+  side: string;
   quantity: number;
-  order_type: 'market' | 'limit';
-  limit_price?: number;
-  status: string;
   filled_quantity: number;
+  order_type: string;
+  limit_price?: number;
+  stop_price?: number;
+  time_in_force?: string;
+  status: string;
+  submitted_at?: string;
+  filled_at?: string;
   average_fill_price?: number;
-  created_at: string;
 }
 
 // Chat types
@@ -83,7 +100,7 @@ export interface Message {
   created_at: string;
 }
 
-// Strategy types
+// Strategy types - templates from backend
 export interface Strategy {
   key: string;
   name: string;
@@ -92,12 +109,26 @@ export interface Strategy {
   risk_level: string;
 }
 
+// User's saved strategy
+export interface UserStrategy {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  source: string;
+  config: Record<string, unknown>;
+  focus_config: Record<string, unknown> | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface StrategyAnalysis {
-  symbol: string;
-  strategy: string;
+  strategy_name: string;
+  alignment_score: number;
   analysis: string;
-  recommendation: string;
-  confidence: number;
+  recommendations: Record<string, unknown>[];
+  warnings: string[];
 }
 
 // Brokerage types

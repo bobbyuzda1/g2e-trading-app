@@ -7,7 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 interface QuoteData {
   symbol: string;
-  last_price: number;
+  last: number;
   change: number;
   change_percent: number;
   bid: number;
@@ -17,6 +17,8 @@ interface QuoteData {
   low: number;
   open: number;
   previous_close: number;
+  timestamp: string;
+  source: string;
 }
 
 export function Research() {
@@ -123,7 +125,7 @@ export function Research() {
             <div>
               <Title className={theme === 'dark' ? 'text-white' : ''}>{quote.symbol}</Title>
               <div className="flex items-center gap-3 mt-1">
-                <Metric className={theme === 'dark' ? 'text-white' : ''}>{formatCurrency(quote.last_price)}</Metric>
+                <Metric className={theme === 'dark' ? 'text-white' : ''}>{formatCurrency(quote.last)}</Metric>
                 <BadgeDelta
                   deltaType={quote.change >= 0 ? 'increase' : 'decrease'}
                   size="lg"
