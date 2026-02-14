@@ -52,7 +52,7 @@ def fetch_logs(api_key: str, owner_id: str, service_id: str,
             print(f"API request failed: {e}", file=sys.stderr)
             break
 
-        logs = data.get("logs", [])
+        logs = data.get("logs") or []
         all_logs.extend(logs)
 
         if not data.get("hasMore", False):

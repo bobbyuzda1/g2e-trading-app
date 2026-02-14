@@ -47,7 +47,7 @@ class RecommendationFeedback(Base, UUIDMixin, TimestampMixin):
 
     # User's feedback
     feedback_type: Mapped[FeedbackType] = mapped_column(
-        SQLEnum(FeedbackType),
+        SQLEnum(FeedbackType, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
     )
     user_reasoning: Mapped[str | None] = mapped_column(Text, nullable=True)
