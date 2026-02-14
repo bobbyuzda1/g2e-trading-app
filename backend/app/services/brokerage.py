@@ -159,7 +159,9 @@ class BrokerageService:
         if state_data.get("user_id") != str(user_id):
             raise ValueError("State does not match user")
 
-        # Inject stored metadata into callback_data (e.g. request_token_secret)
+        # Inject stored metadata into callback_data (e.g. request_token, request_token_secret)
+        if state_data.get("request_token"):
+            callback_data["oauth_token"] = state_data["request_token"]
         if state_data.get("request_token_secret"):
             callback_data["oauth_token_secret"] = state_data["request_token_secret"]
 
