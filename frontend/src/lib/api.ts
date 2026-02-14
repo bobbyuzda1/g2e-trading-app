@@ -93,6 +93,10 @@ export const chatApi = {
     api.post('/chat/conversations', { title }),
   getConversation: (conversationId: string) =>
     api.get(`/chat/conversations/${conversationId}`),
+  renameConversation: (conversationId: string, title: string) =>
+    api.patch(`/chat/conversations/${conversationId}`, { title }),
+  deleteConversation: (conversationId: string) =>
+    api.delete(`/chat/conversations/${conversationId}`),
   sendMessage: (message: string, conversationId?: string) =>
     api.post('/chat/send', { message, conversation_id: conversationId }),
 };

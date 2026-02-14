@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
 import { useTheme } from '../contexts/ThemeContext';
@@ -27,6 +28,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {children}
           </div>
         </main>
+
+        {/* Footer */}
+        <footer className={`py-3 text-center text-xs ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`}>
+          <Link to="/disclosures" className="hover:underline">Disclosures &amp; Terms of Use</Link>
+        </footer>
       </div>
     </div>
   );

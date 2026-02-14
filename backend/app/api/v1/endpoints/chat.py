@@ -13,6 +13,7 @@ from app.services.portfolio import PortfolioService
 from app.services.strategy import StrategyService
 from app.schemas.chat import (
     ConversationCreate,
+    ConversationUpdate,
     ConversationResponse,
     ConversationDetailResponse,
     MessageResponse,
@@ -122,6 +123,34 @@ async def get_conversation(
     )
 
 
+@router.patch("/conversations/{conversation_id}", response_model=ConversationResponse)
+async def update_conversation(
+    conversation_id: UUID,
+    request: ConversationUpdate,
+    current_user: CurrentUser,
+    service: Annotated[ConversationService, Depends(get_conversation_service)],
+):
+    """Rename a conversation."""
+    conversation = await service.get_conversation(conversation_id, current_user.id)
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conversation not found",
+        )
+    conversation.title = request.title
+    await service.db.commit()
+    await service.db.refresh(conversation)
+    count = await service.get_message_count(conversation.id)
+    return ConversationResponse(
+        id=conversation.id,
+        user_id=conversation.user_id,
+        title=conversation.title,
+        created_at=conversation.created_at,
+        updated_at=conversation.updated_at,
+        message_count=count,
+    )
+
+
 @router.delete("/conversations/{conversation_id}", response_model=ApiMessageResponse)
 async def delete_conversation(
     conversation_id: UUID,
@@ -185,6 +214,7 @@ async def send_message(
 
         return ChatResponse(
             conversation_id=conversation.id,
+            conversation_title=conversation.title,
             message=MessageResponse(
                 id=user_msg.id,
                 conversation_id=user_msg.conversation_id,

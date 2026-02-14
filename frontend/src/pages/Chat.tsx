@@ -83,6 +83,31 @@ export function Chat() {
     }
   };
 
+  const renameConversation = async (id: string, title: string) => {
+    try {
+      await chatApi.renameConversation(id, title);
+      setConversations((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, title } : c))
+      );
+    } catch (error) {
+      console.error('Failed to rename conversation:', error);
+    }
+  };
+
+  const deleteConversation = async (id: string) => {
+    try {
+      await chatApi.deleteConversation(id);
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (activeConversation === id) {
+        const remaining = conversations.filter((c) => c.id !== id);
+        setActiveConversation(remaining.length > 0 ? remaining[0].id : null);
+        if (remaining.length === 0) setMessages([]);
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+    }
+  };
+
   const sendMessage = async (content: string) => {
     if (!content.trim()) return;
 
@@ -102,13 +127,19 @@ export function Chat() {
     try {
       // Send message — backend creates conversation if conversation_id is null
       const response = await chatApi.sendMessage(content.trim(), activeConversation || undefined);
-      const { conversation_id, message: userMsg, response: assistantMsg } = response.data;
+      const { conversation_id, conversation_title, message: userMsg, response: assistantMsg } = response.data;
 
-      // If we didn't have a conversation, set it now
+      // If we didn't have a conversation, set it now and reload list
       if (!activeConversation) {
         setActiveConversation(conversation_id);
-        // Reload conversation list to show the new one
         loadConversations();
+      }
+
+      // Update sidebar title immediately if backend returned one
+      if (conversation_title) {
+        setConversations((prev) =>
+          prev.map((c) => (c.id === conversation_id ? { ...c, title: conversation_title } : c))
+        );
       }
 
       // Replace temp message and add AI response
@@ -146,6 +177,8 @@ export function Chat() {
             activeId={activeConversation}
             onSelect={setActiveConversation}
             onNewChat={createNewConversation}
+            onRename={renameConversation}
+            onDelete={deleteConversation}
           />
         </div>
 

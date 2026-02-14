@@ -32,6 +32,11 @@ class ConversationCreate(BaseSchema):
     title: str | None = Field(default=None, max_length=200)
 
 
+class ConversationUpdate(BaseSchema):
+    """Update conversation schema."""
+    title: str = Field(max_length=200)
+
+
 class ConversationResponse(TimestampSchema):
     """Conversation response schema."""
     id: UUID
@@ -54,6 +59,7 @@ class ChatRequest(BaseSchema):
 class ChatResponse(BaseSchema):
     """Chat response schema."""
     conversation_id: UUID
+    conversation_title: str | None = None
     message: MessageResponse
     response: MessageResponse
 
