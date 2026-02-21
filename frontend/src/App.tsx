@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Portfolio } from './pages/Portfolio';
 import { Trading } from './pages/Trading';
 import { Chat } from './pages/Chat';
+import { Research } from './pages/Research';
 import { Strategies } from './pages/Strategies';
 import { Settings } from './pages/Settings';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -54,6 +55,16 @@ function App() {
           <ProtectedRoute>
             <DashboardLayout>
               <Chat />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/research"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <Research />
             </DashboardLayout>
           </ProtectedRoute>
         }

@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Card, Title, Text, TabGroup, TabList, Tab, TabPanels, TabPanel } from '@tremor/react';
-import { portfolioApi } from '../lib/api';
+import { useTheme } from '../contexts/ThemeContext';
+import { portfolioApi, brokerageApi } from '../lib/api';
 import { PortfolioSummary } from '../components/PortfolioSummary';
 import { PositionsTable } from '../components/PositionsTable';
-import type { PortfolioSummary as PortfolioSummaryType, Position } from '../types';
+import type { PortfolioSummary as PortfolioSummaryType, Position, BrokerConnection } from '../types';
 
 export function Portfolio() {
+  const { theme } = useTheme();
   const [summary, setSummary] = useState<PortfolioSummaryType | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [hasActiveBroker, setHasActiveBroker] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,14 +22,25 @@ export function Portfolio() {
     try {
       setIsLoading(true);
       setError(null);
-      const [summaryRes, positionsRes] = await Promise.all([
-        portfolioApi.getSummary(),
-        portfolioApi.getPositions(),
-      ]);
-      setSummary(summaryRes.data);
-      setPositions(positionsRes.data);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to load portfolio');
+
+      // Check broker connections first
+      const connectionsRes = await brokerageApi.getConnections();
+      const activeConnections = (connectionsRes.data || []).filter(
+        (b: BrokerConnection) => b.status === 'active'
+      );
+      setHasActiveBroker(activeConnections.length > 0);
+
+      if (activeConnections.length > 0) {
+        const [summaryRes, positionsRes] = await Promise.all([
+          portfolioApi.getSummary(),
+          portfolioApi.getPositions(),
+        ]);
+        setSummary(summaryRes.data);
+        setPositions(positionsRes.data);
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { detail?: string } } };
+      setError(error.response?.data?.detail || 'Failed to load portfolio');
     } finally {
       setIsLoading(false);
     }
@@ -42,9 +56,9 @@ export function Portfolio() {
 
   if (error) {
     return (
-      <Card className="mx-auto max-w-lg">
+      <Card className={`mx-auto max-w-lg ${theme === 'dark' ? 'bg-slate-800 ring-slate-700' : ''}`}>
         <div className="text-center">
-          <Text className="text-red-600">{error}</Text>
+          <Text className="text-red-500">{error}</Text>
           <button
             onClick={loadPortfolio}
             className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
@@ -56,18 +70,22 @@ export function Portfolio() {
     );
   }
 
-  // Show empty state if no broker connected
-  if (!summary || Number(summary.total_value) === 0) {
+  // Only show "no broker" if actually no broker connected
+  if (!hasActiveBroker) {
     return (
       <div className="space-y-6">
         <div>
-          <Title>Portfolio Overview</Title>
-          <Text>View your aggregated portfolio across all connected brokers.</Text>
+          <Title className={theme === 'dark' ? 'text-white' : ''}>Portfolio Overview</Title>
+          <Text className={theme === 'dark' ? 'text-gray-400' : ''}>
+            View your aggregated portfolio across all connected brokers.
+          </Text>
         </div>
 
-        <Card className="mx-auto max-w-lg text-center py-12">
+        <Card className={`mx-auto max-w-lg text-center py-12 ${
+          theme === 'dark' ? 'bg-slate-800 ring-slate-700' : ''
+        }`}>
           <svg
-            className="mx-auto h-12 w-12 text-gray-400"
+            className={`mx-auto h-12 w-12 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -80,8 +98,8 @@ export function Portfolio() {
               d="M12 6v6m0 0v6m0-6h6m-6 0H6"
             />
           </svg>
-          <Title className="mt-4">No Brokers Connected</Title>
-          <Text className="mt-2">
+          <Title className={`mt-4 ${theme === 'dark' ? 'text-white' : ''}`}>No Brokers Connected</Title>
+          <Text className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : ''}`}>
             Connect a brokerage account to see your portfolio here.
           </Text>
           <a
@@ -98,11 +116,13 @@ export function Portfolio() {
   return (
     <div className="space-y-6">
       <div>
-        <Title>Portfolio Overview</Title>
-        <Text>Your aggregated portfolio across all connected brokers.</Text>
+        <Title className={theme === 'dark' ? 'text-white' : ''}>Portfolio Overview</Title>
+        <Text className={theme === 'dark' ? 'text-gray-400' : ''}>
+          Your aggregated portfolio across all connected brokers.
+        </Text>
       </div>
 
-      <PortfolioSummary summary={summary} />
+      {summary && <PortfolioSummary summary={summary} />}
 
       <TabGroup>
         <TabList>
@@ -112,12 +132,20 @@ export function Portfolio() {
         <TabPanels>
           <TabPanel>
             <div className="mt-4">
-              <PositionsTable positions={positions} />
+              {positions.length > 0 ? (
+                <PositionsTable positions={positions} />
+              ) : (
+                <Card className={theme === 'dark' ? 'bg-slate-800 ring-slate-700' : ''}>
+                  <Text className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    No positions found. This may be a sandbox account with no holdings.
+                  </Text>
+                </Card>
+              )}
             </div>
           </TabPanel>
           <TabPanel>
-            <Card className="mt-4">
-              <Text className="text-center py-8 text-gray-500">
+            <Card className={`mt-4 ${theme === 'dark' ? 'bg-slate-800 ring-slate-700' : ''}`}>
+              <Text className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                 Performance charts coming soon
               </Text>
             </Card>

@@ -58,7 +58,17 @@ export const authApi = {
 export const portfolioApi = {
   getSummary: () => api.get('/portfolio/summary'),
   getPositions: () => api.get('/portfolio/positions'),
+  getBalances: () => api.get('/portfolio/balances'),
+  getQuotes: (symbols: string[]) =>
+    api.get('/portfolio/quotes', { params: { symbols: symbols.join(',') } }),
   getHistory: (days?: number) => api.get('/portfolio/history', { params: { days } }),
+};
+
+// User API
+export const userApi = {
+  getProfile: () => api.get('/users/me'),
+  updateProfile: (data: { full_name?: string; email?: string }) =>
+    api.put('/users/me', data),
 };
 
 // Trading API
@@ -86,18 +96,25 @@ export const tradingApi = {
 // Chat API
 export const chatApi = {
   getConversations: () => api.get('/chat/conversations'),
-  createConversation: () => api.post('/chat/conversations'),
-  getMessages: (conversationId: string) =>
-    api.get(`/chat/conversations/${conversationId}/messages`),
-  sendMessage: (conversationId: string, content: string) =>
-    api.post(`/chat/conversations/${conversationId}/messages`, { content }),
+  createConversation: (title?: string) =>
+    api.post('/chat/conversations', { title: title || null }),
+  getConversation: (conversationId: string) =>
+    api.get(`/chat/conversations/${conversationId}`),
+  sendMessage: (content: string, conversationId?: string) =>
+    api.post('/chat/send', { message: content, conversation_id: conversationId || null }),
+  deleteConversation: (conversationId: string) =>
+    api.delete(`/chat/conversations/${conversationId}`),
 };
 
 // Strategy API
 export const strategyApi = {
-  getStrategies: () => api.get('/strategy'),
-  analyzeSymbol: (symbol: string, strategy?: string) =>
-    api.get(`/strategy/analyze/${symbol}`, { params: { strategy } }),
+  getTemplates: () => api.get('/strategies/templates'),
+  getStrategies: () => api.get('/strategies'),
+  createStrategy: (data: { name: string; description: string; source: string; config?: object; focus_config?: object }) =>
+    api.post('/strategies', data),
+  analyzeAlignment: (strategyId: string) =>
+    api.post('/strategies/analyze', { strategy_id: strategyId }),
+  deleteStrategy: (strategyId: string) => api.delete(`/strategies/${strategyId}`),
 };
 
 // Brokerage API
