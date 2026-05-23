@@ -55,6 +55,7 @@ Update the "Last Updated" date and add entries to the Changelog section at the b
 
 ## Git Branch Workflow
 
+- **Commit often — commits are rollback checkpoints.** Before any significant change, commit the current working state. After each discrete working unit, commit immediately. In autonomous/agentic mode, commit after each logical task step even if the feature is incomplete. A partial-but-working commit is always better than a large all-or-nothing commit that is hard to revert. For checkpoint commits with no better type, use `chore: checkpoint — [brief state description]`.
 - **Working branch:** Always use `cli-comp` for Claude Code desktop session changes. Create it from `main`, push, open PR, merge to `main`.
 - **Do NOT** create new branch names for each change. Reuse `cli-comp` every time.
 - **Protected branch:** `render-logs-integration-RYGq4` is used by Claude Code mobile app. Never delete it.
