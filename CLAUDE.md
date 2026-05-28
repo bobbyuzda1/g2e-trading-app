@@ -36,12 +36,13 @@ provider settings — only the local machine state has to be re-established.
 ### 2. Required local `.env` (gitignored — must be recreated)
 
 `.env` lives at the repo root and is gitignored. After cloning, recreate it from
-1Password. Required keys:
+Bitwarden (`bw get password "<item>"` once your vault is unlocked via `bw-unlock`).
+Required keys:
 
 ```
-RENDER_API_KEY=<from 1Password: "Render API Key">
-SUPABASE_ACCESS_TOKEN=<from 1Password: "Supabase Access Token">
-SUPABASE_PROJECT_REF=<from 1Password: "Supabase Project Ref (g2e)">
+RENDER_API_KEY=<from Bitwarden: "Render API Key">
+SUPABASE_ACCESS_TOKEN=<from Bitwarden: "Supabase Access Token">
+SUPABASE_PROJECT_REF=<from Bitwarden: "Supabase Project Ref (g2e)">
 ```
 
 The `scripts/fetch-render-logs.sh` and `scripts/run-supabase-sql.sh` helpers will
